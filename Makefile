@@ -13,7 +13,7 @@ SOURCES = main.cpp
 all: $(TARGET)
 
 $(TARGET): $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET) -lsfml-graphics -lsfml-window -lsfml-system
 
 clean:
 	rm -f $(TARGET)
