@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compilation flags
-CXXFLAGS = -Wall
+CXXFLAGS = -g -Wall
 
 # Execution file target
 TARGET = main
