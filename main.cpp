@@ -1,8 +1,10 @@
-#include <iostream>
+#include <SFML/Graphics.hpp>
 
 int main() {
 
-    std::cout << "Hello, Devil Hunter!\n";
+    sf::Window window(
+        sf::VideoMode(640, 480),
+        "Hello, Devil Hunter!");
 
     return 0;
 
