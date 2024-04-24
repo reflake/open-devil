@@ -8,12 +8,12 @@ CXXFLAGS = -g -Wall
 TARGET = main
 
 # List of source files
-SOURCES = main.cpp
+SOURCES = *.cpp
 
 all: $(TARGET)
 
 $(TARGET): $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -o $(TARGET) -lsfml-graphics -lsfml-window -lsfml-system
+	$(CXX) $(CXXFLAGS) $(SOURCES) -lSDL2 -o $(TARGET)
 
 clean:
 	rm -f $(TARGET)

@@ -1,26 +1,21 @@
-#include <SFML/Graphics.hpp>
+#include <iostream>
+
+#include "application.hpp"
 
 int main() {
 
-    sf::RenderWindow window(
-        sf::VideoMode(640, 480),
-        "Hello, Devil Hunter!");
+    Application app( "Hello, Devil Hunter!" );
 
-    sf::CircleShape shape(200);
+    bool success = app.init();
 
-    while (window.isOpen()) {
+    std::cout << "Window created successfully" << std::endl;
 
-        sf::Event event;
+    while ( !app.isQuit() ) {
 
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-
-        window.clear();
-        window.draw(shape);
-        window.display();
+        app.pollEvents();
     }
+
+    app.release();
 
     return 0;
 }
