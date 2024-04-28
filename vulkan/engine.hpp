@@ -47,6 +47,7 @@ private:
 
     void createInstance( SDL_Window* window );
     bool checkValidationLayerSupport();
+    void createWindowSurface( SDL_Window* window );
     void pickPhysicalDevice();
     bool isSuitableDevice( VkPhysicalDevice device );
     bool checkDeviceExtensionsSupported( VkPhysicalDevice device );
@@ -57,8 +58,6 @@ private:
     VkExtent2D chooseSwapExtent( const VkSurfaceCapabilitiesKHR& capabilities);
     void createLogicalDevice();
     void createSwapChain();
-    void getDeviceQueue();
-    void createWindowSurface( SDL_Window* window );
 
 private:
 

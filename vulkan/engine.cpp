@@ -45,7 +45,6 @@ void VulkanEngine::setup( SDL_Window* window ) {
     createWindowSurface( window );
     pickPhysicalDevice();
     createLogicalDevice();
-    getDeviceQueue();
     createSwapChain();
 }
 
@@ -354,6 +353,10 @@ void VulkanEngine::createLogicalDevice() {
 
         throw std::runtime_error("Vulkan API: Failed to create logical device");
     }
+
+
+    vkGetDeviceQueue( _device, familyIndices.graphicsFamily.value(), 0, &_graphicsQueue);
+    vkGetDeviceQueue( _device, familyIndices.presentFamily.value(), 0, &_presentQueue);
 }
 
 void VulkanEngine::createSwapChain() {
@@ -407,14 +410,6 @@ void VulkanEngine::createSwapChain() {
 
         throw std::runtime_error( "Vulkan API: failed to create swap chain" );
     }
-}
-
-void VulkanEngine::getDeviceQueue() {
-
-    QueueFamilyIndices indices = findQueueFamilies( _physicalDevice );
-
-    vkGetDeviceQueue( _device, indices.graphicsFamily.value(), 0, &_graphicsQueue);
-    vkGetDeviceQueue( _device, indices.presentFamily.value(), 0, &_presentQueue);
 }
 
 void VulkanEngine::createWindowSurface( SDL_Window* window ) {
