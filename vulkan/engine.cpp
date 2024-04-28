@@ -1,13 +1,15 @@
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_vulkan.h>
-#include <algorithm>
-#include <limits>
-#include <stdexcept>
-#include <iostream>
+
 #include <vulkan/vulkan_core.h>
+
+#include <algorithm>
 #include <cstring>
+#include <iostream>
 #include <set>
+#include <stdexcept>
+#include <limits>
 
 #include "engine.hpp"
 
@@ -169,14 +171,14 @@ bool VulkanEngine::isSuitableDevice( VkPhysicalDevice device ) {
     vkGetPhysicalDeviceProperties( device, &props );
     vkGetPhysicalDeviceFeatures( device, &features );
 
-    QueueFamilyIndices queueFamilyIndices = findQueueFamilies( device );
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies( device, _surface );
 
     bool areExtensionsSupported = checkDeviceExtensionsSupported( device );
     bool swapChainAdequate = false;
 
     if ( areExtensionsSupported ) {
 
-        auto swapChainSupport = querySwapChainSupport( device );
+        auto swapChainSupport = querySwapChainSupport( device, _surface );
         swapChainAdequate = swapChainSupport.isComplete();
     }
 
@@ -208,66 +210,6 @@ bool VulkanEngine::checkDeviceExtensionsSupported( VkPhysicalDevice device ) {
     }
 
     return true;
-}
-
-QueueFamilyIndices VulkanEngine::findQueueFamilies(VkPhysicalDevice device) {
-
-    uint queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, nullptr );
-
-    vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, queueFamilies.data() );
-
-    QueueFamilyIndices indices;
-    int index = 0;
-
-    for ( const auto& queueFamily : queueFamilies ) {
-
-        if ( queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT ) {
-
-            indices.graphicsFamily = index;
-        }
-
-        VkBool32 presentSupport = false;
-
-        vkGetPhysicalDeviceSurfaceSupportKHR( device, index, _surface, &presentSupport);
-
-        if ( presentSupport ) {
-
-            indices.presentFamily = index;
-        }
-
-        index++;
-    }
-
-    return indices;
-}
-
-SwapChainSupportDetails VulkanEngine::querySwapChainSupport( VkPhysicalDevice device ) {
-
-    SwapChainSupportDetails details;
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR( device, _surface, &details.capabilities );
-
-    uint formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR( device, _surface, &formatCount, nullptr);
-
-    if ( formatCount != 0 ) {
-
-        details.formats.resize( formatCount );
-        vkGetPhysicalDeviceSurfaceFormatsKHR( device, _surface, &formatCount, details.formats.data() );
-    }
-
-    uint presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR( device, _surface, &presentModeCount, nullptr );
-
-    if ( presentModeCount != 0 ) {
-
-        details.presentModes.resize( presentModeCount );
-        vkGetPhysicalDeviceSurfacePresentModesKHR( device, _surface, &presentModeCount, details.presentModes.data() );
-    }
-
-    return details;
 }
 
 VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat( const vector<VkSurfaceFormatKHR>& availableFormats ) {
@@ -319,7 +261,7 @@ VkExtent2D VulkanEngine::chooseSwapExtent( const VkSurfaceCapabilitiesKHR& capab
 
 void VulkanEngine::createLogicalDevice() {
 
-    QueueFamilyIndices familyIndices = findQueueFamilies( _physicalDevice );
+    QueueFamilyIndices familyIndices = findQueueFamilies( _physicalDevice, _surface );
 
     vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint> uniqueQueueFamilies = { 
@@ -370,7 +312,7 @@ void VulkanEngine::createLogicalDevice() {
 
 void VulkanEngine::createSwapChain() {
 
-    SwapChainSupportDetails supportDetails = querySwapChainSupport( _physicalDevice );
+    SwapChainSupportDetails supportDetails = querySwapChainSupport( _physicalDevice, _surface );
 
     auto surfaceFormat = chooseSwapSurfaceFormat( supportDetails.formats );
     auto presentMode = chooseSwapPresentMode( supportDetails.presentModes );
@@ -400,7 +342,7 @@ void VulkanEngine::createSwapChain() {
         .oldSwapchain = VK_NULL_HANDLE,
     };
 
-    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(_physicalDevice);
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies( _physicalDevice, _surface );
     uint queueFamilyIndicesArray[] = { queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value() };
 
     if ( queueFamilyIndices.graphicsFamily == queueFamilyIndices.presentFamily ) {

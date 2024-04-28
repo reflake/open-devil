@@ -1,37 +1,20 @@
 #pragma once
 
-#include <SDL2/SDL_video.h>
-#include <vector>
-#include <vulkan/vulkan.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_video.h>
 #include <SDL2/SDL_vulkan.h>
-#include <optional>
+
+#include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
+#include <vector>
+
+#include "types/qfamily_indices.hpp"
+#include "types/swap_chain_support.hpp"
+
 using std::vector;
-using std::optional;
 
 extern const bool enableValidationLayers;
-
-struct QueueFamilyIndices {
-    optional<uint> graphicsFamily;
-    optional<uint> presentFamily;
-
-    bool isComplete() {
-        return graphicsFamily.has_value() && presentFamily.has_value();
-    }
-};
-
-struct SwapChainSupportDetails {
-
-    VkSurfaceCapabilitiesKHR capabilities;
-    vector<VkSurfaceFormatKHR> formats;
-    vector<VkPresentModeKHR> presentModes;
-
-    bool isComplete() {
-        return !formats.empty() && !presentModes.empty();
-    }
-};
 
 class VulkanEngine {
 
@@ -51,8 +34,6 @@ private:
     void pickPhysicalDevice();
     bool isSuitableDevice( VkPhysicalDevice device );
     bool checkDeviceExtensionsSupported( VkPhysicalDevice device );
-    SwapChainSupportDetails querySwapChainSupport( VkPhysicalDevice device );
-    QueueFamilyIndices findQueueFamilies( VkPhysicalDevice device );
     VkSurfaceFormatKHR chooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats);
     VkPresentModeKHR chooseSwapPresentMode( const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D chooseSwapExtent( const VkSurfaceCapabilitiesKHR& capabilities);

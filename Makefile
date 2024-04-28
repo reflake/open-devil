@@ -8,7 +8,7 @@ CXXFLAGS = -g -Wall -std=c++17 -O2
 TARGET = main
 
 # List of source files
-SOURCES = *.cpp vulkan/*.cpp
+SOURCES = *.cpp vulkan/*.cpp vulkan/types/*.cpp
 
 # Vulkan support
 VULKAN = -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
