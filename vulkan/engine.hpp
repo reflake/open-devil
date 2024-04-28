@@ -58,6 +58,7 @@ private:
     VkExtent2D chooseSwapExtent( const VkSurfaceCapabilitiesKHR& capabilities);
     void createLogicalDevice();
     void createSwapChain();
+    void createImageViews();
 
 private:
 
@@ -69,7 +70,8 @@ private:
     VkSurfaceKHR _surface;
     VkSwapchainKHR _swapchain;
     SDL_Window* _window;
-    vector<VkImage> _images;
+    vector<VkImage> _swapchainImages;
+    vector<VkImageView> _swapchainImageViews;
     VkFormat _swapchainImageFormat;
     VkExtent2D _swapchainExtent;
     bool _safe = false;

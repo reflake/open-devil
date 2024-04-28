@@ -46,6 +46,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
     pickPhysicalDevice();
     createLogicalDevice();
     createSwapChain();
+    createImageViews();
 }
 
 bool VulkanEngine::checkValidationLayerSupport() {
@@ -420,16 +421,60 @@ void VulkanEngine::createSwapChain() {
     }
 
     vkGetSwapchainImagesKHR( _device, _swapchain, &imageCount, nullptr );
-    _images.resize( imageCount );
+    _swapchainImages.resize( imageCount );
 
-    vkGetSwapchainImagesKHR( _device, _swapchain, &imageCount, _images.data() );
+    vkGetSwapchainImagesKHR( _device, _swapchain, &imageCount, _swapchainImages.data() );
 
     _swapchainImageFormat = surfaceFormat.format;
     _swapchainExtent = extent;
 }
 
+void VulkanEngine::createImageViews() {
+
+    for (auto swapchainImage : _swapchainImages) {
+
+        VkImageViewCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = swapchainImage,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = _swapchainImageFormat,
+
+            .components {
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            },
+
+            .subresourceRange {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        VkImageView imageView;
+
+        if ( vkCreateImageView( _device, &createInfo, nullptr, &imageView) != VK_SUCCESS ) {
+
+            throw std::runtime_error( "Could not create image view" );
+        }
+
+        _swapchainImageViews.push_back( imageView );
+    }
+}
+
 void VulkanEngine::release()
 {
+    for(auto imageView : _swapchainImageViews) {
+
+        vkDestroyImageView( _device, imageView, nullptr );
+    }
+
+    _swapchainImageViews.clear();
+
     vkDestroySwapchainKHR( _device, _swapchain, nullptr );
     _swapchain = nullptr;
 
