@@ -6,6 +6,12 @@
 
 bool Application::init() {
 
+    return initSDL() && 
+           initVulkan();
+}
+
+bool Application::initSDL() {
+
     if ( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
 
         std::cout << printSdlError( "SDL could not initialize!" );
@@ -13,7 +19,7 @@ bool Application::init() {
     }
     else {
 
-        window = SDL_CreateWindow( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN );
+        window = SDL_CreateWindow( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN );
 
         if ( window == NULL ) {
 
@@ -23,6 +29,14 @@ bool Application::init() {
     }
 
     return true;
+}
+
+bool Application::initVulkan() {
+
+    vulkanEngine = VulkanEngine();
+    vulkanEngine.setup( window );
+
+    return vulkanEngine.isSafe();
 }
 
 bool Application::isQuit() {
@@ -45,6 +59,8 @@ void Application::pollEvents() {
 }
 
 void Application::release() {
+
+    vulkanEngine.release();
 
     SDL_DestroyWindow( window );
     window = NULL;

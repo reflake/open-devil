@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include "vulkan/engine.hpp"
 
 #pragma once
 
@@ -14,7 +15,13 @@ public:
 
 private:
 
+    bool initSDL();
+    bool initVulkan();
+
+private:
+
     const char *title;
     bool running = true;
     SDL_Window *window;
+    VulkanEngine vulkanEngine;
 };
