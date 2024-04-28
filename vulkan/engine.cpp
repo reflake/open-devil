@@ -1,5 +1,6 @@
 #include <SDL2/SDL_error.h>
 #include <SDL2/SDL_vulkan.h>
+#include <algorithm>
 #include <stdexcept>
 #include <vector>
 #include <iostream>
@@ -18,6 +19,11 @@
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"  
 };
+
+bool isLayerEqual( const char *a, const char *b ) {
+
+    return strcmp( a, b ) == 0;
+}
 
 void VulkanEngine::setup( SDL_Window* window ) {
 
@@ -41,24 +47,18 @@ bool VulkanEngine::checkValidationLayerSupport() {
 
     vkEnumerateInstanceLayerProperties( &propertyCount, nullptr );
 
-    std::vector<VkLayerProperties> availableProps(propertyCount);
-    vkEnumerateInstanceLayerProperties( &propertyCount, availableProps.data());
+    std::vector<VkLayerProperties> availableLayerProps(propertyCount);
+    vkEnumerateInstanceLayerProperties( &propertyCount, availableLayerProps.data());
 
-    for (const char* validProp : validationLayers) {
+    for (const char* validLayer : validationLayers) {
 
-        bool layerFound = false;
+        bool layerFound = std::any_of( 
+            availableLayerProps.begin(), 
+            availableLayerProps.end(), 
+            [validLayer] (const auto& layerProps) { return isLayerEqual( validLayer, layerProps.layerName ); } );
 
-        for (const auto& layerProps : availableProps) {
-
-            if ( strcmp( validProp, layerProps.layerName ) == 0 ) {
-                layerFound = true;
-                break;
-            }
-        }
-
-        if ( !layerFound ) {
+        if ( !layerFound )
             return false;
-        }
     }
 
     return true;
@@ -125,20 +125,17 @@ void VulkanEngine::pickPhysicalDevice() {
     vkEnumeratePhysicalDevices( _instance, &deviceCount, devices.data() );
 
     // Search for a suitable device
-    for ( const auto& device : devices ) {
+    auto it = std::find_if( devices.begin(), 
+                             devices.end(), 
+                             [this](VkPhysicalDevice dev) { return isSuitableDevice(dev); } );
 
-        if ( isSuitableDevice( device ) ) {
-
-            _physicalDevice = device;
-            break;
-        }
-    }
-
-    if ( _physicalDevice == VK_NULL_HANDLE ) {
+    if ( it == devices.end() ) {
 
         throw std::runtime_error( "Failed to find a suitable GPU" );
         _safe = false;
     }
+
+    _physicalDevice = *it;
 
     // Print device name
     VkPhysicalDeviceProperties props;
