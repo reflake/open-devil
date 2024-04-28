@@ -114,6 +114,14 @@ void VulkanEngine::createInstance( SDL_Window* window ) {
     }
 }
 
+void VulkanEngine::createWindowSurface( SDL_Window* window ) {
+
+    if ( SDL_Vulkan_CreateSurface( window, _instance, &_surface) == SDL_FALSE ) {
+
+        throw std::runtime_error( "Failed to create Vulkan API window surface" );
+    }
+}
+
 void VulkanEngine::pickPhysicalDevice() {
 
     uint deviceCount;
@@ -409,14 +417,6 @@ void VulkanEngine::createSwapChain() {
     if ( vkCreateSwapchainKHR( _device, &createInfo, nullptr, &_swapchain ) != VK_SUCCESS ) {
 
         throw std::runtime_error( "Vulkan API: failed to create swap chain" );
-    }
-}
-
-void VulkanEngine::createWindowSurface( SDL_Window* window ) {
-
-    if ( SDL_Vulkan_CreateSurface( window, _instance, &_surface) == SDL_FALSE ) {
-
-        throw std::runtime_error( "Failed to create Vulkan API window surface" );
     }
 }
 
