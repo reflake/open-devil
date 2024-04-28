@@ -201,7 +201,7 @@ void VulkanEngine::createLogicalDevice() {
 
     QueueFamilyIndices familyIndices = findQueueFamilies( _physicalDevice );
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos(2);
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint> uniqueQueueFamilies = { 
         familyIndices.graphicsFamily.value(), 
         familyIndices.presentFamily.value() };
