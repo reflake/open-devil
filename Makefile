@@ -27,7 +27,7 @@ VULKAN = -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 dirs:
 	-mkdir -p $(BUILD_DIR)
 
-all: dirs $(TARGET)
+all: dirs
 	$(CXX) $(CXXFLAGS) $(SOURCES) -lSDL2 ${VULKAN} -o $(BUILD_DIR)/$(TARGET)
 
 clean:
