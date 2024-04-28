@@ -69,5 +69,8 @@ private:
     VkSurfaceKHR _surface;
     VkSwapchainKHR _swapchain;
     SDL_Window* _window;
+    vector<VkImage> _images;
+    VkFormat _swapchainImageFormat;
+    VkExtent2D _swapchainExtent;
     bool _safe = false;
 };

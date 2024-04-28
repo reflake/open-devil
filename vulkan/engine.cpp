@@ -418,6 +418,14 @@ void VulkanEngine::createSwapChain() {
 
         throw std::runtime_error( "Vulkan API: failed to create swap chain" );
     }
+
+    vkGetSwapchainImagesKHR( _device, _swapchain, &imageCount, nullptr );
+    _images.resize( imageCount );
+
+    vkGetSwapchainImagesKHR( _device, _swapchain, &imageCount, _images.data() );
+
+    _swapchainImageFormat = surfaceFormat.format;
+    _swapchainExtent = extent;
 }
 
 void VulkanEngine::release()
