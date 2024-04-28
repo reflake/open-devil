@@ -1,8 +1,19 @@
+ifeq "$(CONFIG)" ""
+	CONFIG=Release
+endif
+
+# Build directory
+BUILD_DIR = $(CONFIG)
+
 # Compiler
 CXX = g++
 
 # Compilation flags (O2 - to compile faster)
-CXXFLAGS = -g -Wall -std=c++17 -O2
+CXXFLAGS = -std=c++17 -O2
+
+ifeq "$(CONFIG)" "Debug"
+	CXXFLAGS += -g -Wall
+endif
 
 # Execution file target
 TARGET = main
@@ -13,10 +24,11 @@ SOURCES = *.cpp vulkan/*.cpp vulkan/types/*.cpp
 # Vulkan support
 VULKAN = -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
 
-all: $(TARGET)
+dirs:
+	-mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(SOURCES)
-	$(CXX) $(CXXFLAGS) $(SOURCES) -lSDL2 ${VULKAN} -o $(TARGET)
+all: dirs $(TARGET)
+	$(CXX) $(CXXFLAGS) $(SOURCES) -lSDL2 ${VULKAN} -o $(BUILD_DIR)/$(TARGET)
 
 clean:
 	rm -f $(TARGET)
