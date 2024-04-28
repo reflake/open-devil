@@ -1,4 +1,3 @@
-#include <SDL2/SDL_error.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_vulkan.h>
 
