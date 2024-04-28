@@ -8,11 +8,14 @@
 #include <optional>
 #include <vulkan/vulkan_core.h>
 
+using std::vector;
+using std::optional;
+
 extern const bool enableValidationLayers;
 
 struct QueueFamilyIndices {
-    std::optional<uint> graphicsFamily;
-    std::optional<uint> presentFamily;
+    optional<uint> graphicsFamily;
+    optional<uint> presentFamily;
 
     bool isComplete() {
         return graphicsFamily.has_value() && presentFamily.has_value();
@@ -22,8 +25,8 @@ struct QueueFamilyIndices {
 struct SwapChainSupportDetails {
 
     VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
+    vector<VkSurfaceFormatKHR> formats;
+    vector<VkPresentModeKHR> presentModes;
 
     bool isComplete() {
         return !formats.empty() && !presentModes.empty();

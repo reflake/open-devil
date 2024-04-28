@@ -17,7 +17,7 @@
     const bool enableValidationLayers = true;
 #endif
 
-const std::vector<const char*> validationLayers = {
+const vector<const char*> validationLayers = {
     "VK_LAYER_KHRONOS_validation"  
 };
 
@@ -26,7 +26,7 @@ bool isStrEqual( const char *a, const char *b ) {
     return strcmp( a, b ) == 0;
 }
 
-const std::vector<const char*> deviceExtensions = {
+const vector<const char*> deviceExtensions = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
@@ -55,7 +55,7 @@ bool VulkanEngine::checkValidationLayerSupport() {
 
     vkEnumerateInstanceLayerProperties( &propertyCount, nullptr );
 
-    std::vector<VkLayerProperties> availableLayerProps(propertyCount);
+    vector<VkLayerProperties> availableLayerProps(propertyCount);
     vkEnumerateInstanceLayerProperties( &propertyCount, availableLayerProps.data());
 
     for (const char* validLayer : validationLayers) {
@@ -89,7 +89,7 @@ void VulkanEngine::createInstance( SDL_Window* window ) {
 
     SDL_Vulkan_GetInstanceExtensions( window, &pCount, nullptr );
 
-    std::vector<const char*> extensionNames(pCount);
+    vector<const char*> extensionNames(pCount);
 
     SDL_Vulkan_GetInstanceExtensions( window, &pCount, extensionNames.data() );
 
@@ -128,7 +128,7 @@ void VulkanEngine::pickPhysicalDevice() {
         _safe = false;
     }
 
-    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vector<VkPhysicalDevice> devices(deviceCount);
 
     vkEnumeratePhysicalDevices( _instance, &deviceCount, devices.data() );
 
@@ -184,7 +184,7 @@ bool VulkanEngine::checkDeviceExtensionsSupported( VkPhysicalDevice device ) {
     uint extensionsCount;
     vkEnumerateDeviceExtensionProperties( device, nullptr, &extensionsCount, nullptr);
 
-    std::vector<VkExtensionProperties> availableExtensions( extensionsCount );
+    vector<VkExtensionProperties> availableExtensions( extensionsCount );
     vkEnumerateDeviceExtensionProperties( device, nullptr, &extensionsCount, availableExtensions.data() );
 
     for(const char *requiredExtension : deviceExtensions) {
@@ -207,7 +207,7 @@ QueueFamilyIndices VulkanEngine::findQueueFamilies(VkPhysicalDevice device) {
     uint queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, nullptr );
 
-    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, queueFamilies.data() );
 
     QueueFamilyIndices indices;
@@ -262,7 +262,7 @@ SwapChainSupportDetails VulkanEngine::querySwapChainSupport( VkPhysicalDevice de
     return details;
 }
 
-VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat( const std::vector<VkSurfaceFormatKHR>& availableFormats ) {
+VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat( const vector<VkSurfaceFormatKHR>& availableFormats ) {
 
     for ( const auto& availableFormat : availableFormats) {
 
@@ -275,7 +275,7 @@ VkSurfaceFormatKHR VulkanEngine::chooseSwapSurfaceFormat( const std::vector<VkSu
     return availableFormats[0];
 }
 
-VkPresentModeKHR VulkanEngine::chooseSwapPresentMode( const std::vector<VkPresentModeKHR>& availableModes ) {
+VkPresentModeKHR VulkanEngine::chooseSwapPresentMode( const vector<VkPresentModeKHR>& availableModes ) {
 
     auto it = std::find( availableModes.begin(), availableModes.end(), VK_PRESENT_MODE_MAILBOX_KHR );
 
@@ -313,7 +313,7 @@ void VulkanEngine::createLogicalDevice() {
 
     QueueFamilyIndices familyIndices = findQueueFamilies( _physicalDevice );
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint> uniqueQueueFamilies = { 
         familyIndices.graphicsFamily.value(), 
         familyIndices.presentFamily.value() };
