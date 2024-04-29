@@ -27,12 +27,13 @@ SOURCE_DIR = src
 
 # Objects
 OBJECTS = \
-	${BUILD_OBJ_DIR}/main.o \
-	${BUILD_OBJ_DIR}/application.o \
+	$(BUILD_OBJ_DIR)/main.o \
+	$(BUILD_OBJ_DIR)/file.o \
+	$(BUILD_OBJ_DIR)/application.o \
 	$(BUILD_OBJ_DIR)/vulkan/shader.o \
-	${BUILD_OBJ_DIR}/vulkan/engine.o \
-	${BUILD_OBJ_DIR}/vulkan/types/qfamily_indices.o \
-	${BUILD_OBJ_DIR}/vulkan/types/swap_chain_support.o
+	$(BUILD_OBJ_DIR)/vulkan/engine.o \
+	$(BUILD_OBJ_DIR)/vulkan/types/qfamily_indices.o \
+	$(BUILD_OBJ_DIR)/vulkan/types/swap_chain_support.o
 
 OBJECT_DIRS = \
 	$(BUILD_OBJ_DIR)/vulkan \
