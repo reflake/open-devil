@@ -50,13 +50,17 @@ SDL = -lSDL2
 COMP = $(CXX) $(CXXFLAGS) -o $@ -c $<
 
 # Shaders
+SHADERS = \
+	$(BUILD_SHADER_DIR)/main.frag.spv \
+	$(BUILD_SHADER_DIR)/main.vert.spv \
+
 BUILD_SHADER_DIR = $(BUILD_DIR)/shaders
 
-MV_SHADERS = cp -r shaders $(BUILD_DIR)
+SHADER_SRC_DIR = shaders
 
 all: dirs $(TARGET_BUILD_PATH)
 
-$(TARGET_BUILD_PATH): $(OBJECTS)
+$(TARGET_BUILD_PATH): $(OBJECTS) $(SHADERS)
 	$(CXX) $(OBJECTS) $(LDXXFLAGS) $(SDL) $(VULKAN) -o $(TARGET_BUILD_PATH)
 
 dirs:
@@ -71,3 +75,6 @@ clean:
 
 $(BUILD_OBJ_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 	$(COMP)
+
+$(BUILD_SHADER_DIR)/%.spv : $(SHADER_SRC_DIR)/%
+	glslc $< -o $@

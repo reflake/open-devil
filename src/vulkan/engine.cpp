@@ -412,7 +412,7 @@ void VulkanEngine::createImageViews() {
 
 void VulkanEngine::createRenderPipeline() {
 
-    _mainShader = Shader::loadShader( _device, "shaders/vert.spv", "shaders/frag.spv");
+    _mainShader = Shader::loadShader( _device, "shaders/main.vert.spv", "shaders/main.frag.spv");
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
