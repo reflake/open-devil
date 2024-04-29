@@ -4,27 +4,27 @@
 
 File File::openBinary( const string& filepath ) {
 
-    ifstream file( filepath, iostream::ate | iostream::binary );
+    ifstream stream( filepath, iostream::ate | iostream::binary );
 
-    if ( !file.is_open() ) {
+    if ( !stream.is_open() ) {
         throw std::runtime_error("Failed to open file");
     }
 
     // Look for file size
-    File hFile( file.tellg(), file );
-    file.seekg(0);
+    File file( stream.tellg(), filepath );
+    stream.close();
 
-    return hFile;
+    return file;
 }
 
 void File::readBinary( int count, char *data) {
 
-    _stream.read( data, count );
+    ifstream stream( _filepath, iostream::binary );
+    
+    stream.read( data, count );
+    stream.close();
 }
 
-void File::close() {
-
-    _stream.close();
-}
+void File::close() {}
 
 int File::getSize() { return _size; }

@@ -35,7 +35,7 @@ VkShaderModule Shader::createShaderModule( VkDevice device, const std::vector<ch
 
 std::vector<char> Shader::readFile(const char *filepath) {
 
-    File file = File::openBinary( filepath );
+    File file = File::openBinary( string(filepath) );
     int size = file.getSize();
 
     std::vector<char> chars(size);

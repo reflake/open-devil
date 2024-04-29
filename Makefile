@@ -49,6 +49,11 @@ SDL = -lSDL2
 
 COMP = $(CXX) $(CXXFLAGS) -o $@ -c $<
 
+# Shaders
+BUILD_SHADER_DIR = $(BUILD_DIR)/shaders
+
+MV_SHADERS = cp -r shaders $(BUILD_DIR)
+
 all: dirs $(TARGET_BUILD_PATH)
 
 $(TARGET_BUILD_PATH): $(OBJECTS)
@@ -58,6 +63,8 @@ dirs:
 	-mkdir -p $(BUILD_DIR)
 	-mkdir -p $(BUILD_OBJ_DIR)
 	-mkdir -p $(OBJECT_DIRS)
+	-mkdir -p $(BUILD_SHADER_DIR)
+	$(MV_SHADERS)
 
 clean:
 	rm -rf $(BUILD_DIR)

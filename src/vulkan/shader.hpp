@@ -8,6 +8,8 @@ class Shader {
 
 public:
 
+    Shader() {}
+
     Shader( VkDevice device, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule ) : 
         _device(device),
         _vertShaderModule(vertShaderModule), 

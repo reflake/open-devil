@@ -11,6 +11,7 @@
 
 #include "types/qfamily_indices.hpp"
 #include "types/swap_chain_support.hpp"
+#include "shader.hpp"
 
 using std::vector;
 
@@ -20,7 +21,10 @@ class VulkanEngine {
 
 public:
 
-    VulkanEngine() {}
+    VulkanEngine() {
+        _swapchainImages = vector<VkImage>();
+        _swapchainImageViews = vector<VkImageView>();
+    }
 
     void setup(SDL_Window* window);
     bool isSafe();
@@ -40,9 +44,11 @@ private:
     void createLogicalDevice();
     void createSwapChain();
     void createImageViews();
+    void createRenderPipeline();
 
 private:
 
+    Shader _mainShader;
     VkInstance _instance = VK_NULL_HANDLE;
     VkPhysicalDevice _physicalDevice = VK_NULL_HANDLE;
     VkDevice _device;
@@ -55,5 +61,6 @@ private:
     vector<VkImageView> _swapchainImageViews;
     VkFormat _swapchainImageFormat;
     VkExtent2D _swapchainExtent;
+    VkPipelineLayout _pipelineLayout;
     bool _safe = false;
 };

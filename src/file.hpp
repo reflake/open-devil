@@ -18,8 +18,8 @@ public:
 
 private:
 
-    File( int size, ifstream &stream ) : _size(size), _stream(stream) {}
+    File( int size, string filepath ) : _size(size), _filepath(filepath) {}
 
     int _size;
-    ifstream& _stream;
+    string _filepath;
 };

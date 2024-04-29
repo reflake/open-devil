@@ -1,6 +1,7 @@
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_vulkan.h>
 
+#include <cstddef>
 #include <vulkan/vulkan_core.h>
 
 #include <algorithm>
@@ -9,6 +10,7 @@
 #include <set>
 #include <stdexcept>
 #include <limits>
+#include <cmath>
 
 #include "engine.hpp"
 
@@ -48,6 +50,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
     createLogicalDevice();
     createSwapChain();
     createImageViews();
+    createRenderPipeline();
 }
 
 bool VulkanEngine::checkValidationLayerSupport() {
@@ -407,14 +410,123 @@ void VulkanEngine::createImageViews() {
     }
 }
 
-void VulkanEngine::release()
-{
+void VulkanEngine::createRenderPipeline() {
+
+    _mainShader = Shader::loadShader( _device, "shaders/vert.spv", "shaders/frag.spv");
+
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_VERTEX_BIT,
+        .module = _mainShader.getVertexShaderModule(),
+        .pName = "main-vert"
+    };
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .module = _mainShader.getFragmentShaderModule(),
+        .pName = "main-frag"
+    };
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+    vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT /*, VK_DYNAMIC_STATE_SCISSOR*/ };
+
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = static_cast<uint>(dynamicStates.size()),
+        .pDynamicStates = dynamicStates.data()
+    };
+
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .vertexBindingDescriptionCount = 0,
+        .pVertexBindingDescriptions = nullptr,
+        .vertexAttributeDescriptionCount = 0,
+        .pVertexAttributeDescriptions = nullptr,
+    };
+
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .primitiveRestartEnable = VK_FALSE,  
+    };
+
+    VkViewport viewport {
+        .x = 0.f,
+        .y = 0.f,
+        .width = static_cast<float>(std::round(_swapchainExtent.width)),
+        .height = static_cast<float>(std::round(_swapchainExtent.height)),
+        .minDepth = 0.f,
+        .maxDepth = 1.f
+    };
+
+    VkPipelineViewportStateCreateInfo viewportStateCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .viewportCount = 1,
+        .pViewports = &viewport,
+        .scissorCount = 0,
+        .pScissors = nullptr
+    };
+
+    VkPipelineRasterizationStateCreateInfo rasterizer{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .depthClampEnable = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
+        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+        .depthBiasEnable = VK_FALSE,
+        .depthBiasConstantFactor = 0.f,
+        .depthBiasClamp = 0.f,
+        .depthBiasSlopeFactor = 0.f,
+        .lineWidth = 1.f,
+    };
+
+    VkPipelineColorBlendAttachmentState colorBlendAttachment {
+        .blendEnable = VK_FALSE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    VkPipelineColorBlendStateCreateInfo colorBlendingCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .logicOpEnable = VK_FALSE,
+        .attachmentCount = 1,
+        .pAttachments = &colorBlendAttachment,
+        .blendConstants = { 0.f, 0.f, 0.f, 0.f }
+    };
+
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 0,
+        .pSetLayouts = NULL,
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    };
+
+    if ( vkCreatePipelineLayout( _device, &pipelineLayoutCreateInfo, nullptr, &_pipelineLayout) != VK_SUCCESS ) {
+
+        throw std::runtime_error("Unable to create pipeline layout");
+    }
+}
+
+void VulkanEngine::release() {
+
+    vkDestroyPipelineLayout( _device, _pipelineLayout, nullptr );
+    _pipelineLayout = nullptr;
+
+    _mainShader.release();
+
     for(auto imageView : _swapchainImageViews) {
 
         vkDestroyImageView( _device, imageView, nullptr );
     }
-
-    _swapchainImageViews.clear();
 
     vkDestroySwapchainKHR( _device, _swapchain, nullptr );
     _swapchain = nullptr;
@@ -427,6 +539,9 @@ void VulkanEngine::release()
 
     vkDestroyInstance( _instance, nullptr );
     _instance = nullptr;
+
+    _swapchainImages.clear();
+    _swapchainImageViews.clear();
 
     _safe = false;
 }
