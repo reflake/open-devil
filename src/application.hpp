@@ -13,6 +13,8 @@ public:
     bool isQuit();
     void pollEvents();
     void release();
+    void drawFrame();
+    void deviceWaitIdle();
 
 private:
 

@@ -24,9 +24,12 @@ public:
     VulkanEngine() {
         _swapchainImages = vector<VkImage>();
         _swapchainImageViews = vector<VkImageView>();
+        _swapchainFramebuffers = vector<VkFramebuffer>();
     }
 
     void setup(SDL_Window* window);
+    void drawFrame();
+    void deviceWaitIdle();
     bool isSafe();
     void release();
 
@@ -44,7 +47,13 @@ private:
     void createLogicalDevice();
     void createSwapChain();
     void createImageViews();
+    void createRenderPass();
     void createRenderPipeline();
+    void createFramebuffers();
+    void createCommandPool();
+    void createCommandBuffer();
+    void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex );
+    void createSyncObjects();
 
 private:
 
@@ -62,5 +71,13 @@ private:
     VkFormat _swapchainImageFormat;
     VkExtent2D _swapchainExtent;
     VkPipelineLayout _pipelineLayout;
+    VkRenderPass _renderPass;
+    VkPipeline _mainGraphicsPipeline;
+    vector<VkFramebuffer> _swapchainFramebuffers;
+    VkCommandPool _commandPool;
+    VkCommandBuffer _commandBuffer;
+    VkSemaphore _imageAvailableSemaphore;
+    VkSemaphore _renderFinishedSemaphore;
+    VkFence _inFlightFence;
     bool _safe = false;
 };

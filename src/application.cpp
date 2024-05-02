@@ -58,6 +58,16 @@ void Application::pollEvents() {
     }
 }
 
+void Application::drawFrame() {
+
+    vulkanEngine.drawFrame();
+}
+
+void Application::deviceWaitIdle() {
+
+    vulkanEngine.deviceWaitIdle();
+}
+
 void Application::release() {
 
     vulkanEngine.release();

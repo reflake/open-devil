@@ -13,8 +13,11 @@ int main() {
     while ( !app.isQuit() ) {
 
         app.pollEvents();
+        app.drawFrame();
     }
 
+    // make sure device is idling before releasing any resources
+    app.deviceWaitIdle();
     app.release();
 
     return 0;
