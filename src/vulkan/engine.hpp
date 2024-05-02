@@ -52,8 +52,10 @@ private:
     void createFramebuffers();
     void createCommandPool();
     void createCommandBuffer();
+    void createVertexBuffer();
     void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex );
     void createSyncObjects();
+    uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
 
 private:
 
@@ -79,5 +81,7 @@ private:
     VkSemaphore _imageAvailableSemaphore;
     VkSemaphore _renderFinishedSemaphore;
     VkFence _inFlightFence;
+    VkBuffer _vertexBuffer;
+    VkDeviceMemory _vertexBufferMemory;
     bool _safe = false;
 };

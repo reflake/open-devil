@@ -57,6 +57,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
     createFramebuffers();
     createCommandPool();
     createCommandBuffer();
+    createVertexBuffer();
     createSyncObjects();
 }
 
@@ -672,6 +673,74 @@ void VulkanEngine::createCommandBuffer() {
         throw std::runtime_error("Failed to allocate command buffer");
     }
 }
+
+uint VulkanEngine::findMemoryType(uint typeFilter, VkMemoryPropertyFlags desiredProperties) {
+
+    VkPhysicalDeviceMemoryProperties memProps;
+    vkGetPhysicalDeviceMemoryProperties( _physicalDevice, &memProps );
+
+    for ( uint i = 0; i < memProps.memoryTypeCount; i++ ) {
+
+        if ( typeFilter & (1 << i) && (memProps.memoryTypes[i].propertyFlags & desiredProperties) ) {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type");
+}
+
+void VulkanEngine::createVertexBuffer() {
+
+    const std::vector<Vertex> vertices = {
+
+        { {0.0f, -.5f}, {1.0f, 0.0f, 0.0f} },
+        { {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} },
+        { {-.5f, 0.5f}, {0.0f, 0.0f, 1.0f} }
+    };
+
+    // Initialize buffer
+    uint bufferSize = sizeof(Vertex) * vertices.size();
+
+    {
+        VkBufferCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = bufferSize,
+            .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+        };
+
+        if ( vkCreateBuffer( _device, &createInfo, nullptr, &_vertexBuffer) != VK_SUCCESS ) {
+
+            throw std::runtime_error("Failed to create vertex buffer");
+        }
+    }
+
+    // Alloc memory and bind it to the buffer
+    {
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements( _device, _vertexBuffer, &memRequirements );
+
+        VkMemoryAllocateInfo allocInfo {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = memRequirements.size,
+            .memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT )
+        };
+
+        if ( vkAllocateMemory( _device, &allocInfo, nullptr, &_vertexBufferMemory) != VK_SUCCESS ) {
+
+            throw std::runtime_error("Unable to allocate vertex buffer memory");
+        }
+
+        vkBindBufferMemory( _device, _vertexBuffer, _vertexBufferMemory, 0 );
+    }
+
+    void *data;
+    vkMapMemory( _device, _vertexBufferMemory, 0, bufferSize, 0, &data);
+
+    memcpy( data, vertices.data(), bufferSize );
+
+    vkUnmapMemory( _device, _vertexBufferMemory );
+}
     
 void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex ) {
 
@@ -723,7 +792,13 @@ void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imag
     scissor.extent = _swapchainExtent;
     vkCmdSetScissor( commandBuffer, 0, 1, &scissor );
 
-    // TODO: draw some stuff
+    {
+        VkBuffer vertexBuffers[] = { _vertexBuffer };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(_commandBuffer, 0, 1, vertexBuffers, offsets );
+
+        vkCmdDraw( _commandBuffer, 3, 1, 0, 0 );
+    }
 
     vkCmdEndRenderPass( commandBuffer );
 
@@ -811,6 +886,12 @@ void VulkanEngine::deviceWaitIdle() {
 }
 
 void VulkanEngine::release() {
+
+    vkDestroyBuffer( _device, _vertexBuffer, nullptr );
+    _vertexBuffer = nullptr;
+
+    vkFreeMemory( _device, _vertexBufferMemory, nullptr );
+    _vertexBufferMemory = nullptr;
 
     vkDestroySemaphore( _device, _imageAvailableSemaphore, nullptr);
     _imageAvailableSemaphore = nullptr;
