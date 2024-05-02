@@ -701,18 +701,73 @@ void VulkanEngine::createVertexBuffer() {
     // Initialize buffer
     uint bufferSize = sizeof(Vertex) * vertices.size();
 
-    createBuffer( 
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    createBuffer(
         bufferSize, 
-        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-        _vertexBuffer, 
-        _vertexBufferMemory);
+        VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+        stagingBuffer, stagingBufferMemory);
 
     void *data;
-    vkMapMemory( _device, _vertexBufferMemory, 0, bufferSize, 0, &data);
+    vkMapMemory( _device, stagingBufferMemory, 0, bufferSize, 0, &data);
 
     memcpy( data, vertices.data(), bufferSize );
 
-    vkUnmapMemory( _device, _vertexBufferMemory );
+    vkUnmapMemory( _device, stagingBufferMemory );
+
+    createBuffer( 
+        bufferSize, 
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+        _vertexBuffer, _vertexBufferMemory);
+    copyBuffer( stagingBuffer, _vertexBuffer, bufferSize);
+
+    vkDestroyBuffer( _device, stagingBuffer, nullptr );
+    vkFreeMemory( _device, stagingBufferMemory, nullptr );
+}
+
+void VulkanEngine::copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size ) {
+
+    VkCommandBufferAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = _commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = 1,
+    };
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers( _device, &allocInfo, &commandBuffer);
+
+    {
+        VkCommandBufferBeginInfo beginInfo {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+        };
+
+        vkBeginCommandBuffer( commandBuffer, &beginInfo );
+
+        VkBufferCopy copyRegion {
+            .srcOffset = 0,
+            .dstOffset = 0,
+            .size = size,
+        };
+
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+        vkEndCommandBuffer(commandBuffer);
+    }
+
+    VkSubmitInfo submitInfo {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &commandBuffer
+    };
+
+    vkQueueSubmit( _graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE );
+    vkQueueWaitIdle( _graphicsQueue );
+
+    vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
 }
     
 void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex ) {
