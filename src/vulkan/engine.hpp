@@ -55,6 +55,7 @@ private:
     void createVertexBuffer();
     void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex );
     void createSyncObjects();
+    void createBuffer( VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memProps, VkBuffer &buffer, VkDeviceMemory &bufferMemory );
     uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
 
 private:

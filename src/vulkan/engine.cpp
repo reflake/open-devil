@@ -693,46 +693,19 @@ void VulkanEngine::createVertexBuffer() {
 
     const std::vector<Vertex> vertices = {
 
-        { {0.0f, -.5f}, {1.0f, 0.0f, 0.0f} },
-        { {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f} },
-        { {-.5f, 0.5f}, {0.0f, 0.0f, 1.0f} }
+        { {0.0f, -.5f}, {0xFF, 0x00, 0x00} },
+        { {0.5f, 0.5f}, {0x00, 0xFF, 0x00} },
+        { {-.5f, 0.5f}, {0x00, 0x00, 0xFF} }
     };
 
     // Initialize buffer
     uint bufferSize = sizeof(Vertex) * vertices.size();
 
-    {
-        VkBufferCreateInfo createInfo {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-            .size = bufferSize,
-            .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-        };
-
-        if ( vkCreateBuffer( _device, &createInfo, nullptr, &_vertexBuffer) != VK_SUCCESS ) {
-
-            throw std::runtime_error("Failed to create vertex buffer");
-        }
-    }
-
-    // Alloc memory and bind it to the buffer
-    {
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements( _device, _vertexBuffer, &memRequirements );
-
-        VkMemoryAllocateInfo allocInfo {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memRequirements.size,
-            .memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT )
-        };
-
-        if ( vkAllocateMemory( _device, &allocInfo, nullptr, &_vertexBufferMemory) != VK_SUCCESS ) {
-
-            throw std::runtime_error("Unable to allocate vertex buffer memory");
-        }
-
-        vkBindBufferMemory( _device, _vertexBuffer, _vertexBufferMemory, 0 );
-    }
+    createBuffer( 
+        bufferSize, 
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+        _vertexBuffer, 
+        _vertexBufferMemory);
 
     void *data;
     vkMapMemory( _device, _vertexBufferMemory, 0, bufferSize, 0, &data);
@@ -829,6 +802,44 @@ void VulkanEngine::createSyncObjects() {
 
         throw std::runtime_error("Unable to create fence");
     } 
+}
+
+void VulkanEngine::createBuffer( 
+        VkDeviceSize bufferSize, VkBufferUsageFlags usageFlags,
+        VkMemoryPropertyFlags memProps, VkBuffer &buffer, VkDeviceMemory &bufferMemory ){
+
+    {
+        VkBufferCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+            .size = bufferSize,
+            .usage = usageFlags,
+            .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+        };
+
+        if ( vkCreateBuffer( _device, &createInfo, nullptr, &buffer) != VK_SUCCESS ) {
+
+            throw std::runtime_error("Failed to create buffer");
+        }
+    }
+
+    // Alloc memory and bind it to the buffer
+    {
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements( _device, buffer, &memRequirements );
+
+        VkMemoryAllocateInfo allocInfo {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = memRequirements.size,
+            .memoryTypeIndex = findMemoryType( memRequirements.memoryTypeBits, memProps )
+        };
+
+        if ( vkAllocateMemory( _device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS ) {
+
+            throw std::runtime_error("Unable to allocate buffer memory");
+        }
+
+        vkBindBufferMemory( _device, buffer, bufferMemory, 0 );
+    }
 }
 
 void VulkanEngine::drawFrame() {

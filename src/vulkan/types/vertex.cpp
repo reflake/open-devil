@@ -23,7 +23,7 @@ std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescription
         VkVertexInputAttributeDescription{
             .location = 1,
             .binding = 0,
-            .format = VK_FORMAT_R32G32B32_SFLOAT,
+            .format = VK_FORMAT_R8G8B8_UNORM,
             .offset = offsetof( Vertex, color )
         }
     };
