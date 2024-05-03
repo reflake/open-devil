@@ -57,6 +57,11 @@ private:
     void createSyncObjects();
     void createBuffer( VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memProps, VkBuffer &buffer, VkDeviceMemory &bufferMemory );
     void copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size );
+    void createDescriptorSetlayout();
+    void createUniformBuffer();
+    void updateUniformBuffer();
+    void createDescriptorPool();
+    void allocDescriptorSet();
     uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
 
 private:
@@ -85,5 +90,11 @@ private:
     VkFence _inFlightFence;
     VkBuffer _vertexBuffer;
     VkDeviceMemory _vertexBufferMemory;
+    VkDescriptorSetLayout _descriptorSetLayout;
+    VkBuffer _uniformBuffer;
+    VkDeviceMemory _uniformBufferMemory;
+    VkDescriptorPool _descriptorPool;
+    VkDescriptorSet _descriptorSet;
+    void *_uniformBufferMapped;
     bool _safe = false;
 };
