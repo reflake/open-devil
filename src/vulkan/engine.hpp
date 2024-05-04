@@ -53,6 +53,7 @@ private:
     void createCommandPool();
     void createCommandBuffer();
     void createVertexBuffer();
+    void createIndexBuffer();
     void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex );
     void createSyncObjects();
     void createBuffer( VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memProps, VkBuffer &buffer, VkDeviceMemory &bufferMemory );
@@ -90,6 +91,8 @@ private:
     VkFence _inFlightFence;
     VkBuffer _vertexBuffer;
     VkDeviceMemory _vertexBufferMemory;
+    VkBuffer _indexBuffer;
+    VkDeviceMemory _indexBufferMemory;
     VkDescriptorSetLayout _descriptorSetLayout;
     VkBuffer _uniformBuffer;
     VkDeviceMemory _uniformBufferMemory;
