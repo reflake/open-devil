@@ -21,7 +21,13 @@ class VulkanEngine {
 
 public:
 
-    VulkanEngine() {
+    VulkanEngine() : 
+        _commandBuffers(),
+        _imageAvailableSemaphores(), 
+        _renderFinishedSemaphores(),
+        _inFlightFences() {
+
+        _currentFrame = 0;
         _swapchainImages = vector<VkImage>();
         _swapchainImageViews = vector<VkImageView>();
         _swapchainFramebuffers = vector<VkFramebuffer>();
@@ -51,7 +57,7 @@ private:
     void createRenderPipeline();
     void createFramebuffers();
     void createCommandPool();
-    void createCommandBuffer();
+    void createCommandBuffers();
     void createVertexBuffer();
     void createIndexBuffer();
     void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex );
@@ -85,19 +91,20 @@ private:
     VkPipeline _mainGraphicsPipeline;
     vector<VkFramebuffer> _swapchainFramebuffers;
     VkCommandPool _commandPool;
-    VkCommandBuffer _commandBuffer;
-    VkSemaphore _imageAvailableSemaphore;
-    VkSemaphore _renderFinishedSemaphore;
-    VkFence _inFlightFence;
+    vector<VkCommandBuffer> _commandBuffers;
+    vector<VkSemaphore> _imageAvailableSemaphores;
+    vector<VkSemaphore> _renderFinishedSemaphores;
+    vector<VkFence> _inFlightFences;
     VkBuffer _vertexBuffer;
     VkDeviceMemory _vertexBufferMemory;
     VkBuffer _indexBuffer;
     VkDeviceMemory _indexBufferMemory;
     VkDescriptorSetLayout _descriptorSetLayout;
-    VkBuffer _uniformBuffer;
+    VkBuffer _uniformBuffer; // TODO: create buffer for each flight frame
     VkDeviceMemory _uniformBufferMemory;
     VkDescriptorPool _descriptorPool;
     VkDescriptorSet _descriptorSet;
     void *_uniformBufferMapped;
     bool _safe = false;
+    int _currentFrame;
 };
