@@ -6,74 +6,74 @@
 
 bool Application::init() {
 
-    return initSDL() && 
-           initVulkan();
+	return initSDL() && 
+		   initVulkan();
 }
 
 bool Application::initSDL() {
 
-    if ( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
+	if ( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
 
-        std::cout << printSdlError( "SDL could not initialize!" );
-        return false;
-    }
-    else {
+		std::cout << printSdlError( "SDL could not initialize!" );
+		return false;
+	}
+	else {
 
-        window = SDL_CreateWindow( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN );
+		window = SDL_CreateWindow( title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN | SDL_WINDOW_VULKAN );
 
-        if ( window == NULL ) {
+		if ( window == NULL ) {
 
-            std::cout << printSdlError( "Window could not be created!" );
-            return false;
-        }
-    }
+			std::cout << printSdlError( "Window could not be created!" );
+			return false;
+		}
+	}
 
-    return true;
+	return true;
 }
 
 bool Application::initVulkan() {
 
-    vulkanEngine = VulkanEngine();
-    vulkanEngine.setup( window );
+	vulkanEngine = VulkanEngine();
+	vulkanEngine.setup( window );
 
-    return vulkanEngine.isSafe();
+	return vulkanEngine.isSafe();
 }
 
 bool Application::isQuit() {
 
-    return !running;
+	return !running;
 }
 
 void Application::pollEvents() {
 
-    SDL_Event e;
+	SDL_Event e;
 
-    while ( SDL_PollEvent( &e ))
-    {
-        switch ( e.type ) {
-            case SDL_QUIT:
-                running = false;
-                break;
-        }
-    }
+	while ( SDL_PollEvent( &e ))
+	{
+		switch ( e.type ) {
+			case SDL_QUIT:
+				running = false;
+				break;
+		}
+	}
 }
 
 void Application::drawFrame() {
 
-    vulkanEngine.drawFrame();
+	vulkanEngine.drawFrame();
 }
 
 void Application::deviceWaitIdle() {
 
-    vulkanEngine.deviceWaitIdle();
+	vulkanEngine.deviceWaitIdle();
 }
 
 void Application::release() {
 
-    vulkanEngine.release();
+	vulkanEngine.release();
 
-    SDL_DestroyWindow( window );
-    window = NULL;
+	SDL_DestroyWindow( window );
+	window = NULL;
 
-    SDL_Quit();
+	SDL_Quit();
 }

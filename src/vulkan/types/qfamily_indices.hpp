@@ -10,10 +10,10 @@ using std::vector;
 using std::optional;
 
 struct QueueFamilyIndices {
-    optional<uint> graphicsFamily;
-    optional<uint> presentFamily;
+	optional<uint> graphicsFamily;
+	optional<uint> presentFamily;
 
-    bool isComplete();
+	bool isComplete();
 };
 
 QueueFamilyIndices findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface );

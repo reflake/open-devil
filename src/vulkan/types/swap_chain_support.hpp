@@ -9,11 +9,11 @@ using std::vector;
 
 struct SwapChainSupportDetails {
 
-    VkSurfaceCapabilitiesKHR capabilities;
-    vector<VkSurfaceFormatKHR> formats;
-    vector<VkPresentModeKHR> presentModes;
+	VkSurfaceCapabilitiesKHR capabilities;
+	vector<VkSurfaceFormatKHR> formats;
+	vector<VkPresentModeKHR> presentModes;
 
-    bool isComplete();
+	bool isComplete();
 };
 
 SwapChainSupportDetails querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKHR surface );

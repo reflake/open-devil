@@ -1,38 +1,38 @@
 #include "qfamily_indices.hpp"
 
 bool QueueFamilyIndices::isComplete() {
-    return graphicsFamily.has_value() && presentFamily.has_value();
+	return graphicsFamily.has_value() && presentFamily.has_value();
 }
 
 QueueFamilyIndices findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface ) {
 
-    uint queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, nullptr );
+	uint queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, nullptr );
 
-    vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, queueFamilies.data() );
+	vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties( device, &queueFamilyCount, queueFamilies.data() );
 
-    QueueFamilyIndices indices;
-    int index = 0;
+	QueueFamilyIndices indices;
+	int index = 0;
 
-    for ( const auto& queueFamily : queueFamilies ) {
+	for ( const auto& queueFamily : queueFamilies ) {
 
-        if ( queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT ) {
+		if ( queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT ) {
 
-            indices.graphicsFamily = index;
-        }
+			indices.graphicsFamily = index;
+		}
 
-        VkBool32 presentSupport = false;
+		VkBool32 presentSupport = false;
 
-        vkGetPhysicalDeviceSurfaceSupportKHR( device, index, surface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR( device, index, surface, &presentSupport);
 
-        if ( presentSupport ) {
+		if ( presentSupport ) {
 
-            indices.presentFamily = index;
-        }
+			indices.presentFamily = index;
+		}
 
-        index++;
-    }
+		index++;
+	}
 
-    return indices;
+	return indices;
 }

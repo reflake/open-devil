@@ -4,21 +4,21 @@
 
 int main() {
 
-    Application app( "Hello, Devil Hunter!" );
+	Application app( "Hello, Devil Hunter!" );
 
-    bool success = app.init();
+	bool success = app.init();
 
-    std::cout << "Window created successfully" << std::endl;
+	std::cout << "Window created successfully" << std::endl;
 
-    while ( !app.isQuit() ) {
+	while ( !app.isQuit() ) {
 
-        app.pollEvents();
-        app.drawFrame();
-    }
+		app.pollEvents();
+		app.drawFrame();
+	}
 
-    // make sure device is idling before releasing any resources
-    app.deviceWaitIdle();
-    app.release();
+	// make sure device is idling before releasing any resources
+	app.deviceWaitIdle();
+	app.release();
 
-    return 0;
+	return 0;
 }

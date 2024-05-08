@@ -8,25 +8,25 @@ class Shader {
 
 public:
 
-    Shader() {}
+	Shader() {}
 
-    Shader( VkDevice device, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule ) : 
-        _device(device),
-        _vertShaderModule(vertShaderModule), 
-        _fragShaderModule(fragShaderModule) {}
+	Shader( VkDevice device, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule ) : 
+		_device(device),
+		_vertShaderModule(vertShaderModule), 
+		_fragShaderModule(fragShaderModule) {}
 
-    void release();
+	void release();
 
-    VkShaderModule getVertexShaderModule();
-    VkShaderModule getFragmentShaderModule();
+	VkShaderModule getVertexShaderModule();
+	VkShaderModule getFragmentShaderModule();
 
-    static Shader loadShader( VkDevice device, const char *vertPath, const char *fragPath );
-    static VkShaderModule createShaderModule( VkDevice device, const std::vector<char>& code );
+	static Shader loadShader( VkDevice device, const char *vertPath, const char *fragPath );
+	static VkShaderModule createShaderModule( VkDevice device, const std::vector<char>& code );
 
 private:
 
-    VkDevice _device;
-    VkShaderModule _vertShaderModule;
-    VkShaderModule _fragShaderModule;
-    static std::vector<char> readFile(const char *filepath);
+	VkDevice _device;
+	VkShaderModule _vertShaderModule;
+	VkShaderModule _fragShaderModule;
+	static std::vector<char> readFile(const char *filepath);
 };

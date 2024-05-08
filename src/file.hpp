@@ -9,17 +9,17 @@ class File {
 
 public:
 
-    void close();
-    void readBinary( int count, char *data );
+	void close();
+	void readBinary( int count, char *data );
 
-    int getSize();
+	int getSize();
 
-    static File openBinary( const string& filepath );
+	static File openBinary( const string& filepath );
 
 private:
 
-    File( int size, string filepath ) : _size(size), _filepath(filepath) {}
+	File( int size, string filepath ) : _size(size), _filepath(filepath) {}
 
-    int _size;
-    string _filepath;
+	int _size;
+	string _filepath;
 };
