@@ -1025,6 +1025,7 @@ void VulkanEngine::createDescriptorPool() {
 
 	VkDescriptorPoolCreateInfo createInfo {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+		.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
 		.maxSets = 1,
 		.poolSizeCount = 1,
 		.pPoolSizes = &poolSize,
