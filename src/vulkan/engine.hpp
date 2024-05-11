@@ -21,18 +21,6 @@ class VulkanEngine {
 
 public:
 
-	VulkanEngine() : 
-		_commandBuffers(),
-		_imageAvailableSemaphores(), 
-		_renderFinishedSemaphores(),
-		_inFlightFences() {
-
-		_currentFrame = 0;
-		_swapchainImages = vector<VkImage>();
-		_swapchainImageViews = vector<VkImageView>();
-		_swapchainFramebuffers = vector<VkFramebuffer>();
-	}
-
 	void setup(SDL_Window* window);
 	void drawFrame();
 	void deviceWaitIdle();
@@ -106,5 +94,5 @@ private:
 	VkDescriptorSet _descriptorSet;
 	void *_uniformBufferMapped;
 	bool _safe = false;
-	int _currentFrame;
+	int _currentFrame = 0;
 };
