@@ -21,6 +21,7 @@
 #include "types/qfamily_indices.hpp"
 #include "types/vertex.hpp"
 #include "engine.hpp"
+#include "../media/image.hpp"
 
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
@@ -68,6 +69,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
 	createFramebuffers();
 	createCommandPool();
 	createCommandBuffers();
+	createTextureImage();
 	createVertexBuffer();
 	createIndexBuffer();
 	createUniformBuffer();
@@ -1089,6 +1091,11 @@ void VulkanEngine::allocDescriptorSet() {
 
 		vkUpdateDescriptorSets( _device, 1, &descriptorWrite, 0, nullptr );
 	}
+}
+
+void VulkanEngine::createTextureImage() {
+
+	Image::loadFile( "textures/sample.png" );
 }
 
 void VulkanEngine::drawFrame() {

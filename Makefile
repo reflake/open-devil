@@ -35,10 +35,12 @@ OBJECTS = \
 	$(BUILD_OBJ_DIR)/vulkan/types/qfamily_indices.o \
 	$(BUILD_OBJ_DIR)/vulkan/types/swap_chain_support.o \
 	$(BUILD_OBJ_DIR)/vulkan/types/vertex.o \
+	$(BUILD_OBJ_DIR)/media/image.o \
 
 OBJECT_DIRS = \
 	$(BUILD_OBJ_DIR)/vulkan \
 	$(BUILD_OBJ_DIR)/vulkan/types \
+	$(BUILD_OBJ_DIR)/media \
 
 BUILD_OBJ_DIR = $(BUILD_DIR)/obj
 
@@ -59,16 +61,27 @@ BUILD_SHADER_DIR = $(BUILD_DIR)/shaders
 
 SHADER_SRC_DIR = shaders
 
+# Texture
+TEXTURE = $(BUILD_TEX_DIR)/sample.png
+
+BUILD_TEX_DIR = $(BUILD_DIR)/textures
+
+TEXTURE_DIR = textures
+
+# Png Library
+LIBPNG = -lpng
+
 all: dirs $(TARGET_BUILD_PATH)
 
-$(TARGET_BUILD_PATH): $(OBJECTS) $(SHADERS)
-	$(CXX) $(OBJECTS) $(LDXXFLAGS) $(SDL) $(VULKAN) -o $(TARGET_BUILD_PATH)
+$(TARGET_BUILD_PATH): $(OBJECTS) $(SHADERS) $(TEXTURE)
+	$(CXX) $(OBJECTS) $(LDXXFLAGS) $(SDL) $(VULKAN) $(LIBPNG) -o $(TARGET_BUILD_PATH)
 
 dirs:
 	-mkdir -p $(BUILD_DIR)
 	-mkdir -p $(BUILD_OBJ_DIR)
 	-mkdir -p $(OBJECT_DIRS)
 	-mkdir -p $(BUILD_SHADER_DIR)
+	-mkdir -p $(BUILD_TEX_DIR)
 	$(MV_SHADERS)
 
 clean:
@@ -79,3 +92,6 @@ $(BUILD_OBJ_DIR)/%.o : $(SOURCE_DIR)/%.cpp
 
 $(BUILD_SHADER_DIR)/%.spv : $(SHADER_SRC_DIR)/%
 	glslc $< -o $@
+
+$(BUILD_TEX_DIR)/% : $(TEXTURE_DIR)/%
+	cp $< $@

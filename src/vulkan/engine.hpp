@@ -57,6 +57,7 @@ private:
 	void updateUniformBuffer( int flightFrame );
 	void createDescriptorPool();
 	void allocDescriptorSet();
+	void createTextureImage();
 	uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
 
 private:
