@@ -874,7 +874,7 @@ void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imag
 	scissor.extent = _swapchainExtent;
 	vkCmdSetScissor( commandBuffer, 0, 1, &scissor );
 
-	vkCmdBindDescriptorSets( commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSet, 0, nullptr );
+	vkCmdBindDescriptorSets( commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[imageIndex], 0, nullptr );
 
 	{
 		VkBuffer vertexBuffers[] = { _vertexBuffer };
@@ -985,19 +985,31 @@ void VulkanEngine::createDescriptorSetlayout() {
 	}
 }
 
-void VulkanEngine::createUniformBuffer()
-{
+void VulkanEngine::createUniformBuffer() {
 	VkDeviceSize bufferSize = sizeof( UniformBufferObject );
 
-	createBuffer( bufferSize, 
-		VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-		_uniformBuffer, _uniformBufferMemory);
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 
-	vkMapMemory( _device, _uniformBufferMemory, 0, bufferSize, 0, &_uniformBufferMapped);
+		VkBuffer buffer;
+		VkDeviceMemory memory;
+
+		createBuffer( bufferSize, 
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+			buffer, memory);
+
+		_uniformBuffers.push_back( buffer );
+		_uniformBufferMemory.push_back( memory );
+
+		void* mappedMemory;
+
+		vkMapMemory( _device, memory, 0, bufferSize, 0, &mappedMemory);
+
+		_uniformBufferMapped.push_back( mappedMemory );
+	}
 }
 
-void VulkanEngine::updateUniformBuffer() {
+void VulkanEngine::updateUniformBuffer( int flightFrame ) {
 
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -1013,20 +1025,20 @@ void VulkanEngine::updateUniformBuffer() {
 	ubo.view = glm::lookAt(eyePos, targetPos, upVec);
 	ubo.proj = glm::perspective(glm::radians(45.0f), _swapchainExtent.width / (float) _swapchainExtent.height, 0.1f, 10.0f);
 
-	memcpy( _uniformBufferMapped, &ubo, sizeof(ubo) );
+	memcpy( _uniformBufferMapped[flightFrame], &ubo, sizeof(ubo) );
 }
 
 void VulkanEngine::createDescriptorPool() {
 
 	VkDescriptorPoolSize poolSize {
 		.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = 1
+		.descriptorCount = MAX_FRAMES_IN_FLIGHT
 	};
 
 	VkDescriptorPoolCreateInfo createInfo {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
-		.maxSets = 1,
+		.maxSets = MAX_FRAMES_IN_FLIGHT,
 		.poolSizeCount = 1,
 		.pPoolSizes = &poolSize,
 	};
@@ -1039,37 +1051,44 @@ void VulkanEngine::createDescriptorPool() {
 
 void VulkanEngine::allocDescriptorSet() {
 
+	vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
+
 	VkDescriptorSetAllocateInfo allocInfo {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.descriptorPool = _descriptorPool,
-		.descriptorSetCount = 1,
-		.pSetLayouts = &_descriptorSetLayout,
+		.descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
+		.pSetLayouts = layouts.data(),
 	};
 
-	if ( vkAllocateDescriptorSets( _device, &allocInfo, &_descriptorSet) != VK_SUCCESS ) {
+	_descriptorSets.resize( MAX_FRAMES_IN_FLIGHT );
+
+	if ( vkAllocateDescriptorSets( _device, &allocInfo, _descriptorSets.data() ) != VK_SUCCESS ) {
 
 		throw std::runtime_error( "Failed to allocate descriptor set" );
 	}
 
-	VkDescriptorBufferInfo bufferInfo {
-		.buffer = _uniformBuffer,
-		.offset = 0,
-		.range = sizeof(UniformBufferObject)
-	};
+	for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
 
-	VkWriteDescriptorSet descriptorWrite {
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = _descriptorSet,
-		.dstBinding = 0,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.pImageInfo = nullptr,
-		.pBufferInfo = &bufferInfo,
-		.pTexelBufferView = nullptr,
-	};
+		VkDescriptorBufferInfo bufferInfo {
+			.buffer = _uniformBuffers[i],
+			.offset = 0,
+			.range = sizeof(UniformBufferObject)
+		};
 
-	vkUpdateDescriptorSets( _device, 1, &descriptorWrite, 0, nullptr );
+		VkWriteDescriptorSet descriptorWrite {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet = _descriptorSets[i],
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pImageInfo = nullptr,
+			.pBufferInfo = &bufferInfo,
+			.pTexelBufferView = nullptr,
+		};
+
+		vkUpdateDescriptorSets( _device, 1, &descriptorWrite, 0, nullptr );
+	}
 }
 
 void VulkanEngine::drawFrame() {
@@ -1086,7 +1105,7 @@ void VulkanEngine::drawFrame() {
 							_imageAvailableSemaphores[flightFrame], VK_NULL_HANDLE, &imageIndex );
 
 	// Record new commands
-	updateUniformBuffer();
+	updateUniformBuffer( flightFrame );
 	vkResetCommandBuffer( _commandBuffers[flightFrame], 0 );
 	recordCommandBuffer( _commandBuffers[flightFrame], imageIndex );
 
@@ -1132,17 +1151,26 @@ void VulkanEngine::deviceWaitIdle() {
 
 void VulkanEngine::release() {
 
-	vkFreeDescriptorSets( _device, _descriptorPool, 1, &_descriptorSet );
-	_descriptorSet = nullptr;
+	for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
+
+		vkFreeDescriptorSets( _device, _descriptorPool, 1, &_descriptorSets[i] );
+	}
+
+	_descriptorSets.clear();
 
 	vkDestroyDescriptorPool( _device, _descriptorPool, nullptr );
 	_descriptorPool = nullptr;
 
-	vkDestroyBuffer( _device, _uniformBuffer, nullptr );
-	_uniformBuffer = nullptr;
+	for ( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
 
-	vkFreeMemory( _device, _uniformBufferMemory, nullptr );
-	_uniformBufferMemory = nullptr;
+		vkDestroyBuffer( _device, _uniformBuffers[i], nullptr );
+		vkFreeMemory( _device, _uniformBufferMemory[i], nullptr );
+
+	}
+
+	_uniformBuffers.clear();
+	_uniformBufferMemory.clear();
+	_uniformBufferMapped.clear();
 
 	vkDestroyDescriptorSetLayout( _device, _descriptorSetLayout, nullptr);
 	_descriptorSetLayout = nullptr;

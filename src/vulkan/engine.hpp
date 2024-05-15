@@ -54,7 +54,7 @@ private:
 	void copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size );
 	void createDescriptorSetlayout();
 	void createUniformBuffer();
-	void updateUniformBuffer();
+	void updateUniformBuffer( int flightFrame );
 	void createDescriptorPool();
 	void allocDescriptorSet();
 	uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
@@ -88,11 +88,11 @@ private:
 	VkBuffer _indexBuffer;
 	VkDeviceMemory _indexBufferMemory;
 	VkDescriptorSetLayout _descriptorSetLayout;
-	VkBuffer _uniformBuffer; // TODO: create buffer for each flight frame
-	VkDeviceMemory _uniformBufferMemory;
+	vector<VkBuffer> _uniformBuffers; // TODO: create buffer for each flight frame
+	vector<VkDeviceMemory> _uniformBufferMemory;
+	vector<void*> _uniformBufferMapped;
 	VkDescriptorPool _descriptorPool;
-	VkDescriptorSet _descriptorSet;
-	void *_uniformBufferMapped;
+	vector<VkDescriptorSet> _descriptorSets;
 	bool _safe = false;
 	int _currentFrame = 0;
 };
