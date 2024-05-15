@@ -48,7 +48,7 @@ private:
 	void createCommandBuffers();
 	void createVertexBuffer();
 	void createIndexBuffer();
-	void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex );
+	void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex, int flightFrame );
 	void createSyncObjects();
 	void createBuffer( VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memProps, VkBuffer &buffer, VkDeviceMemory &bufferMemory );
 	void copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size );

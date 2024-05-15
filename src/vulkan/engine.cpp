@@ -826,7 +826,7 @@ void VulkanEngine::copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceS
 	vkFreeCommandBuffers(_device, _commandPool, 1, &commandBuffer);
 }
 	
-void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex ) {
+void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex, int flightFrame ) {
 
 	VkCommandBufferBeginInfo beginInfo {
 
@@ -876,7 +876,8 @@ void VulkanEngine::recordCommandBuffer( VkCommandBuffer commandBuffer, uint imag
 	scissor.extent = _swapchainExtent;
 	vkCmdSetScissor( commandBuffer, 0, 1, &scissor );
 
-	vkCmdBindDescriptorSets( commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 0, 1, &_descriptorSets[imageIndex], 0, nullptr );
+	vkCmdBindDescriptorSets( commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipelineLayout, 
+							0, 1, &_descriptorSets[flightFrame], 0, nullptr );
 
 	{
 		VkBuffer vertexBuffers[] = { _vertexBuffer };
@@ -1114,7 +1115,7 @@ void VulkanEngine::drawFrame() {
 	// Record new commands
 	updateUniformBuffer( flightFrame );
 	vkResetCommandBuffer( _commandBuffers[flightFrame], 0 );
-	recordCommandBuffer( _commandBuffers[flightFrame], imageIndex );
+	recordCommandBuffer( _commandBuffers[flightFrame], imageIndex, flightFrame );
 
 	// Submit command buffer to queue
 	VkSemaphore waitSemaphore[] = { _imageAvailableSemaphores[flightFrame] };
