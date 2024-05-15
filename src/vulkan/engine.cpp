@@ -74,7 +74,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
 	createIndexBuffer();
 	createUniformBuffer();
 	createDescriptorPool();
-	allocDescriptorSet();
+	allocDescriptorSets();
 }
 
 bool VulkanEngine::checkValidationLayerSupport() {
@@ -1051,7 +1051,7 @@ void VulkanEngine::createDescriptorPool() {
 	}
 }
 
-void VulkanEngine::allocDescriptorSet() {
+void VulkanEngine::allocDescriptorSets() {
 
 	vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, _descriptorSetLayout);
 
