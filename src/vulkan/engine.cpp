@@ -785,6 +785,7 @@ void VulkanEngine::createIndexBuffer() {
 
 void VulkanEngine::copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size ) {
 
+	// TODO: replace with singleTimeCmmands()
 	VkCommandBufferAllocateInfo allocInfo{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 		.commandPool = _commandPool,
@@ -1094,9 +1095,192 @@ void VulkanEngine::allocDescriptorSets() {
 	}
 }
 
+VkCommandBuffer VulkanEngine::beginSingleTimeCommands() {
+
+	VkCommandBufferAllocateInfo allocInfo {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.commandPool = _commandPool,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = 1,
+	};
+
+	VkCommandBuffer allocatedBuffer;
+	vkAllocateCommandBuffers( _device, &allocInfo, &allocatedBuffer );
+
+	VkCommandBufferBeginInfo beginInfo {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+	};
+
+	vkBeginCommandBuffer( allocatedBuffer, &beginInfo );
+
+	return allocatedBuffer;
+}
+
+void VulkanEngine::endSingleTimeCommands( VkCommandBuffer commandBuffer ) {
+
+	vkEndCommandBuffer( commandBuffer );
+
+	VkSubmitInfo submitInfo {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &commandBuffer
+	};
+
+	vkQueueSubmit( _graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE );
+	vkQueueWaitIdle( _graphicsQueue );
+
+	vkFreeCommandBuffers( _device, _commandPool, 1, &commandBuffer );
+}
+
+void VulkanEngine::createImage(uint width, uint height, VkFormat format, VkImage& image, VkDeviceMemory& imageMemory) {
+
+  VkImageCreateInfo imageInfo{
+      .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+      .flags = 0,
+      .imageType = VK_IMAGE_TYPE_2D,
+      .format = format,
+      .extent = {.width = static_cast<uint>(width),
+                 .height = static_cast<uint>(height),
+                 .depth = 1},
+      .mipLevels = 1,
+      .arrayLayers = 1,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .tiling = VK_IMAGE_TILING_OPTIMAL,
+      .usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+  };
+
+  if (vkCreateImage(_device, &imageInfo, nullptr, &image) !=
+      VK_SUCCESS) {
+
+    throw std::runtime_error("Failed to create texture image");
+  }
+
+  VkMemoryRequirements memRequirements;
+  vkGetImageMemoryRequirements(_device, image, &memRequirements);
+
+  VkMemoryAllocateInfo allocInfo {
+    .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+    .allocationSize = memRequirements.size,
+    .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits,
+                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+  };
+
+  if ( vkAllocateMemory( _device, &allocInfo, nullptr, &imageMemory ) !=
+      VK_SUCCESS) {
+
+    throw std::runtime_error("Failed to allocate memory for image");
+  }
+
+  vkBindImageMemory( _device, image, imageMemory, 0 );
+}
+
 void VulkanEngine::createTextureImage() {
 
-	Image::loadFile( "textures/sample.png" );
+	auto image = Image::loadFile("textures/sample.png");
+
+	VkDeviceSize imageSize = image.getSize();
+
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+
+	createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+					VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				stagingBuffer, stagingBufferMemory);
+
+	void *data;
+
+	vkMapMemory(_device, stagingBufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, image.getPixelPointer(), image.getSize());
+	vkUnmapMemory(_device, stagingBufferMemory);
+
+	const auto format = VK_FORMAT_R8G8B8A8_SRGB;
+
+	createImage( image.getWidth(), image.getHeight(), format, textureImage, textureImageMemory );
+	transitionImageLayout( textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+	copyBufferToImage( stagingBuffer, textureImage, image.getWidth(), image.getHeight() );
+	transitionImageLayout( textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+
+}
+
+// TODO: https://vulkan-tutorial.com/Texture_mapping/Images#page_Transition-barrier-masks
+void VulkanEngine::transitionImageLayout( VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout ) {
+
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
+	VkAccessFlags sourceAccessFlags;
+	VkAccessFlags destinationAccessFlags;
+
+	if ( oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ) {
+
+		sourceAccessFlags = 0;
+		destinationAccessFlags = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	
+	} else if ( oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&  ) }
+
+	} else {
+
+		throw std::runtime_error("Unsupported layout transition.");
+	}
+
+	VkImageMemoryBarrier barrier {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.srcAccessMask = sourceAccessFlags,
+		.dstAccessMask = destinationAccessFlags,
+		.oldLayout = oldLayout,
+		.newLayout = newLayout,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = image,
+		.subresourceRange = {
+			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1
+		},
+	};
+
+	vkCmdPipelineBarrier( commandBuffer, 0, 0, 0, 
+							// TODO:
+							0, nullptr, 
+							0, nullptr, 
+							1, &barrier );
+
+	endSingleTimeCommands( commandBuffer );
+}
+
+void VulkanEngine::copyBufferToImage( VkBuffer buffer, VkImage image, uint width, uint height) {
+
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+	VkBufferImageCopy region {
+		.bufferOffset = 0,
+		.bufferRowLength = 0,
+		.bufferImageHeight = 0,
+		.imageSubresource = {
+			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.mipLevel = 0,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		},
+		.imageOffset = { 0,0,0 },
+		.imageExtent = {
+			width, height, 1
+		}
+	};
+
+	vkCmdCopyBufferToImage( commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region );
+
+	endSingleTimeCommands( commandBuffer );
 }
 
 void VulkanEngine::drawFrame() {

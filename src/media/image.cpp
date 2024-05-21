@@ -51,7 +51,8 @@ Image Image::loadFile( const char *path ) {
     png_get_IHDR( png_ptr, info_ptr, &width, &height, &depth, &colorType, NULL, NULL, NULL );
 
     int bytesPerRow = png_get_rowbytes( png_ptr, info_ptr );
-    unsigned char *pixels = new unsigned char[ height * bytesPerRow ];
+    int size = height * bytesPerRow;
+    unsigned char *pixels = new unsigned char[ size ];
     png_bytepp row_pointers = new png_bytep[height];
 
     for(int i = 0; i < height; i++) {
@@ -63,14 +64,34 @@ Image Image::loadFile( const char *path ) {
 
     png_destroy_read_struct( &png_ptr, &info_ptr, NULL );
 
-    return Image( width, height, pixels );
+    return Image( width, height, pixels, size );
 }
 
-Image::Image( int width, int height, unsigned char * pixels ) : _width(width), _height(height), _pixels(pixels) {
+Image::Image( int width, int height, unsigned char * pixels, int size ) : _width(width), _height(height), _pixels(pixels), _size(size) {
 
 }
 
 Image::~Image() {
 
     delete _pixels;
+}    
+
+inline const int Image::getWidth() {
+
+    return _width;
+}
+
+inline const int Image::getHeight() {
+
+    return _height;
+}
+
+inline const unsigned char * Image::getPixelPointer() {
+
+    return _pixels;
+}
+
+inline const int Image::getSize() {
+
+    return _size;
 }
