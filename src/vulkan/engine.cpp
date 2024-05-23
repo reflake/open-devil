@@ -1199,13 +1199,41 @@ void VulkanEngine::createTextureImage() {
 
 	const auto format = VK_FORMAT_R8G8B8A8_SRGB;
 
-	createImage( image.getWidth(), image.getHeight(), format, textureImage, textureImageMemory );
-	transitionImageLayout( textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
-	copyBufferToImage( stagingBuffer, textureImage, image.getWidth(), image.getHeight() );
-	transitionImageLayout( textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
+	createImage( image.getWidth(), image.getHeight(), format, _textureImage, _textureImageMemory );
+	transitionImageLayout( _textureImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL );
+	copyBufferToImage( stagingBuffer, _textureImage, image.getWidth(), image.getHeight() );
+	transitionImageLayout( _textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
 	vkDestroyBuffer( _device, stagingBuffer, nullptr );
 	vkFreeMemory( _device, stagingBufferMemory, nullptr );
+}
+
+void VulkanEngine::createTextureImageView() {
+
+	createImageView( _textureImage, VK_FORMAT_R8G8B8A8_SRGB, &_textureImageView );
+
+}
+
+void VulkanEngine::createImageView( VkImage image, VkFormat format, VkImageView* pView ) {
+
+	VkImageViewCreateInfo viewInfo {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.image = image,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.subresourceRange = {
+			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.baseMipLevel = 0,
+			.levelCount = 1,
+			.baseArrayLayer = 0,
+			.layerCount = 1,
+		}
+	};
+
+	if ( vkCreateImageView( _device, &viewInfo, nullptr, pView ) != VK_SUCCESS ) {
+
+		throw std::runtime_error( "Failed to create texture image view" );
+	}
 }
 
 // TODO: https://vulkan-tutorial.com/Texture_mapping/Images#page_Transition-barrier-masks
@@ -1350,8 +1378,8 @@ void VulkanEngine::deviceWaitIdle() {
 
 void VulkanEngine::release() {
 
-	vkDestroyImage( _device, textureImage, nullptr );
-	vkFreeMemory( _device, textureImageMemory, nullptr );
+	vkDestroyImage( _device, _textureImage, nullptr );
+	vkFreeMemory( _device, _textureImageMemory, nullptr );
 
 	for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
 

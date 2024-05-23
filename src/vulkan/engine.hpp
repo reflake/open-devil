@@ -58,12 +58,14 @@ private:
 	void createDescriptorPool();
 	void allocDescriptorSets();
 	void createTextureImage();
+	void createTextureImageView();
 	void copyBufferToImage( VkBuffer buffer, VkImage image, uint width, uint height);
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands( VkCommandBuffer commandBuffer );
 	uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
 	void createImage( uint width, uint height, VkFormat format, VkImage& image, VkDeviceMemory& imageMemory );
 	void transitionImageLayout( VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout );
+	void createImageView( VkImage image, VkFormat format, VkImageView* pView );
 
 private:
 
@@ -99,8 +101,9 @@ private:
 	vector<void*> _uniformBufferMapped;
 	VkDescriptorPool _descriptorPool;
 	vector<VkDescriptorSet> _descriptorSets;
-	VkImage textureImage;
-	VkDeviceMemory textureImageMemory;
+	VkImage _textureImage;
+	VkImageView _textureImageView;
+	VkDeviceMemory _textureImageMemory;
 	bool _safe = false;
 	int _currentFrame = 0;
 };
