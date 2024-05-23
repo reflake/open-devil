@@ -61,7 +61,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createSwapChain();
-	createImageViews();
+	createSwapChainImageViews();
 	createRenderPass();
 	createDescriptorSetlayout();
 	createRenderPipeline();
@@ -397,35 +397,13 @@ void VulkanEngine::createSwapChain() {
 	_swapchainExtent = extent;
 }
 
-void VulkanEngine::createImageViews() {
+void VulkanEngine::createSwapChainImageViews() {
 
 	for (auto swapchainImage : _swapchainImages) {
 
-		VkImageViewCreateInfo createInfo {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-			.image = swapchainImage,
-			.viewType = VK_IMAGE_VIEW_TYPE_2D,
-			.format = _swapchainImageFormat,
-
-			.components {
-				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.a = VK_COMPONENT_SWIZZLE_IDENTITY,
-			},
-
-			.subresourceRange {
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-				.baseMipLevel = 0,
-				.levelCount = 1,
-				.baseArrayLayer = 0,
-				.layerCount = 1
-			}
-		};
-
 		VkImageView imageView;
 
-		if ( vkCreateImageView( _device, &createInfo, nullptr, &imageView) != VK_SUCCESS ) {
+		if ( createImageView( swapchainImage, _swapchainImageFormat, &imageView ) != VK_SUCCESS ) {
 
 			throw std::runtime_error( "Could not create image view" );
 		}
@@ -1210,30 +1188,37 @@ void VulkanEngine::createTextureImage() {
 
 void VulkanEngine::createTextureImageView() {
 
-	createImageView( _textureImage, VK_FORMAT_R8G8B8A8_SRGB, &_textureImageView );
+	if ( createImageView( _textureImage, VK_FORMAT_R8G8B8A8_SRGB, &_textureImageView ) != VK_SUCCESS ) {
+
+		throw std::runtime_error( "Failed to create texture image view" );
+	}
 
 }
 
-void VulkanEngine::createImageView( VkImage image, VkFormat format, VkImageView* pView ) {
+VkResult VulkanEngine::createImageView( VkImage image, VkFormat format, VkImageView* pView ) {
 
 	VkImageViewCreateInfo viewInfo {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 		.image = image,
 		.viewType = VK_IMAGE_VIEW_TYPE_2D,
 		.format = format,
+		.components {
+			.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+			.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+			.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+			.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+		},
 		.subresourceRange = {
 			.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 			.baseMipLevel = 0,
 			.levelCount = 1,
 			.baseArrayLayer = 0,
 			.layerCount = 1,
-		}
+		},
+
 	};
 
-	if ( vkCreateImageView( _device, &viewInfo, nullptr, pView ) != VK_SUCCESS ) {
-
-		throw std::runtime_error( "Failed to create texture image view" );
-	}
+	return vkCreateImageView( _device, &viewInfo, nullptr, pView );
 }
 
 // TODO: https://vulkan-tutorial.com/Texture_mapping/Images#page_Transition-barrier-masks

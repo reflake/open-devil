@@ -40,7 +40,7 @@ private:
 	VkExtent2D chooseSwapExtent( const VkSurfaceCapabilitiesKHR& capabilities);
 	void createLogicalDevice();
 	void createSwapChain();
-	void createImageViews();
+	void createSwapChainImageViews();
 	void createRenderPass();
 	void createRenderPipeline();
 	void createFramebuffers();
@@ -65,7 +65,7 @@ private:
 	uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
 	void createImage( uint width, uint height, VkFormat format, VkImage& image, VkDeviceMemory& imageMemory );
 	void transitionImageLayout( VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout );
-	void createImageView( VkImage image, VkFormat format, VkImageView* pView );
+	VkResult createImageView( VkImage image, VkFormat format, VkImageView* pView );
 
 private:
 
