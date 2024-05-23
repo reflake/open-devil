@@ -1393,6 +1393,8 @@ void VulkanEngine::deviceWaitIdle() {
 
 void VulkanEngine::release() {
 
+	vkDestroySampler( _device, _textureSampler, nullptr );
+
 	vkDestroyImageView( _device, _textureImageView, nullptr );
 
 	vkDestroyImage( _device, _textureImage, nullptr );
