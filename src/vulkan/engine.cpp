@@ -74,6 +74,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
 	createIndexBuffer();
 	createUniformBuffer();
 	createDescriptorPool();
+	createTextureSampler();
 	allocDescriptorSets();
 }
 
@@ -1275,6 +1276,36 @@ void VulkanEngine::transitionImageLayout( VkImage image, VkFormat format, VkImag
 							1, &barrier );
 
 	endSingleTimeCommands( commandBuffer );
+}
+
+void VulkanEngine::createTextureSampler() {
+
+	VkPhysicalDeviceProperties properties {};
+	vkGetPhysicalDeviceProperties( _physicalDevice, &properties );
+
+	VkSamplerCreateInfo samplerInfo {
+		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		.magFilter = VK_FILTER_LINEAR,
+		.minFilter = VK_FILTER_LINEAR,
+		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+		.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, // TODO: organize properly, rearrange with address mode
+		.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		.mipLodBias = 0.0f,
+		.minLod = 0.0f,
+		.maxLod = 0.0f,
+		.anisotropyEnable = VK_TRUE,
+		.maxAnisotropy = properties.limits.maxSamplerAnisotropy,
+		.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+		.unnormalizedCoordinates = VK_FALSE,
+		.compareEnable = VK_FALSE,
+		.compareOp = VK_COMPARE_OP_ALWAYS,
+	};
+
+	if ( vkCreateSampler( _device, &samplerInfo, nullptr, &_textureSampler ) != VK_SUCCESS ) {
+
+		throw std::runtime_error("Failed to create texture sampler!");
+	}
 }
 
 void VulkanEngine::copyBufferToImage( VkBuffer buffer, VkImage image, uint width, uint height) {

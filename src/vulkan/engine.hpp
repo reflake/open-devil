@@ -66,6 +66,7 @@ private:
 	void createImage( uint width, uint height, VkFormat format, VkImage& image, VkDeviceMemory& imageMemory );
 	void transitionImageLayout( VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout );
 	VkResult createImageView( VkImage image, VkFormat format, VkImageView* pView );
+	void createTextureSampler();
 
 private:
 
@@ -104,6 +105,7 @@ private:
 	VkImage _textureImage;
 	VkImageView _textureImageView;
 	VkDeviceMemory _textureImageMemory;
+	VkSampler _textureSampler;
 	bool _safe = false;
 	int _currentFrame = 0;
 };
