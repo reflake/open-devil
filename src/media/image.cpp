@@ -76,22 +76,22 @@ Image::~Image() {
     delete _pixels;
 }    
 
-inline const int Image::getWidth() {
+const int Image::getWidth() {
 
     return _width;
 }
 
-inline const int Image::getHeight() {
+const int Image::getHeight() {
 
     return _height;
 }
 
-inline const unsigned char * Image::getPixelPointer() {
+const unsigned char * Image::getPixelPointer() {
 
     return _pixels;
 }
 
-inline const int Image::getSize() {
+const int Image::getSize() {
 
     return _size;
 }
