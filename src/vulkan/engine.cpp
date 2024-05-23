@@ -1221,7 +1221,6 @@ VkResult VulkanEngine::createImageView( VkImage image, VkFormat format, VkImageV
 	return vkCreateImageView( _device, &viewInfo, nullptr, pView );
 }
 
-// TODO: https://vulkan-tutorial.com/Texture_mapping/Images#page_Transition-barrier-masks
 void VulkanEngine::transitionImageLayout( VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout ) {
 
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands();
