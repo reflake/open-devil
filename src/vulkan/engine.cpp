@@ -1362,6 +1362,8 @@ void VulkanEngine::deviceWaitIdle() {
 
 void VulkanEngine::release() {
 
+	vkDestroyImageView( _device, _textureImageView, nullptr );
+
 	vkDestroyImage( _device, _textureImage, nullptr );
 	vkFreeMemory( _device, _textureImageMemory, nullptr );
 
