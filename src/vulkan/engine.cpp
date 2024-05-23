@@ -1213,18 +1213,24 @@ void VulkanEngine::transitionImageLayout( VkImage image, VkFormat format, VkImag
 
 	VkPipelineStageFlags sourceStage;
 	VkPipelineStageFlags destinationStage;
-	VkAccessFlags sourceAccessFlags;
-	VkAccessFlags destinationAccessFlags;
+	VkAccessFlags sourceAccessMask;
+	VkAccessFlags destinationAccessMask;
 
 	if ( oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL ) {
 
-		sourceAccessFlags = 0;
-		destinationAccessFlags = VK_ACCESS_TRANSFER_WRITE_BIT;
+		sourceAccessMask = 0;
+		destinationAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 	
-	} else if ( oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&  ) }
+	} else if ( oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL ) {
+
+		sourceAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		destinationAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
 	} else {
 
@@ -1233,8 +1239,8 @@ void VulkanEngine::transitionImageLayout( VkImage image, VkFormat format, VkImag
 
 	VkImageMemoryBarrier barrier {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		.srcAccessMask = sourceAccessFlags,
-		.dstAccessMask = destinationAccessFlags,
+		.srcAccessMask = sourceAccessMask,
+		.dstAccessMask = destinationAccessMask,
 		.oldLayout = oldLayout,
 		.newLayout = newLayout,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -1249,8 +1255,7 @@ void VulkanEngine::transitionImageLayout( VkImage image, VkFormat format, VkImag
 		},
 	};
 
-	vkCmdPipelineBarrier( commandBuffer, 0, 0, 0, 
-							// TODO:
+	vkCmdPipelineBarrier( commandBuffer, sourceStage, destinationStage, 0, 
 							0, nullptr, 
 							0, nullptr, 
 							1, &barrier );
