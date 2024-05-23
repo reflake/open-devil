@@ -1204,6 +1204,8 @@ void VulkanEngine::createTextureImage() {
 	copyBufferToImage( stagingBuffer, textureImage, image.getWidth(), image.getHeight() );
 	transitionImageLayout( textureImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL );
 
+	vkDestroyBuffer( _device, stagingBuffer, nullptr );
+	vkFreeMemory( _device, stagingBufferMemory, nullptr );
 }
 
 // TODO: https://vulkan-tutorial.com/Texture_mapping/Images#page_Transition-barrier-masks
@@ -1347,6 +1349,9 @@ void VulkanEngine::deviceWaitIdle() {
 }
 
 void VulkanEngine::release() {
+
+	vkDestroyImage( _device, textureImage, nullptr );
+	vkFreeMemory( _device, textureImageMemory, nullptr );
 
 	for( int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++ ) {
 
