@@ -4,11 +4,13 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <filesystem>
 #include <glm/ext/vector_float3.hpp>
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
 #include <glm/glm.hpp>
+#include <iostream>
 
 #include "model.hpp"
 
@@ -34,7 +36,7 @@ Mesh readModel( const std::string& meshPath ) {
 
     Assimp::Importer importer;
 
-	const auto aiFlags = aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType;
+	const auto aiFlags = aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType | aiProcess_FlipUVs;
     const aiScene* scene = importer.ReadFile( meshPath, aiFlags );
 
 	if ( scene == nullptr ) {
@@ -42,7 +44,18 @@ Mesh readModel( const std::string& meshPath ) {
 		throw std::runtime_error("Failed to load mesh");
 	}
 
-	if ( scene->HasMaterials() ) {
+	std::string strTexturePath;
+
+	if ( scene->HasMaterials() && scene->mNumTextures == 0 ) {
+
+		assert( scene->mNumMaterials == 1 );
+
+		auto texturePath = aiString();
+		scene->mMaterials[0]->GetTexture( aiTextureType_DIFFUSE, 0, &texturePath );
+
+		std::filesystem::path fullPathToTexture { "textures/" };
+
+		strTexturePath = std::string( fullPathToTexture.append( texturePath.C_Str() ) );
 
 	} else {
 		
@@ -109,12 +122,14 @@ Mesh readModel( const std::string& meshPath ) {
 			}
 		}
 
+		// Find dimension bounds
 		auto aabb = findAABB( vertPositions );
 
-		printf("Max bound %f %f, %f\n", aabb.first.x, aabb.first.y, aabb.first.z );
-		printf("Min bound %f %f, %f\n", aabb.second.x, aabb.second.y, aabb.second.z );
+		printf("Max model bound %f %f, %f\n", aabb.first.x, aabb.first.y, aabb.first.z );
+		printf("Min model bound %f %f, %f\n", aabb.second.x, aabb.second.y, aabb.second.z );
 
 		return Mesh { 
+			.texturePath = strTexturePath,
 			.vertPositions = vertPositions,
 			.texCoords = texCoords,
 			.indices = triIndices,

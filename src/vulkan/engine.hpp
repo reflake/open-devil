@@ -12,7 +12,7 @@
 #include "types/qfamily_indices.hpp"
 #include "types/swap_chain_support.hpp"
 #include "types/image_params.hpp"
-#include "types/vertex.hpp"
+#include "../media/image.hpp"
 #include "shader.hpp"
 
 using std::vector;
@@ -57,7 +57,7 @@ private:
 	void updateUniformBuffer( int flightFrame );
 	void createDescriptorPool();
 	void allocDescriptorSets();
-	void createTextureImage();
+	void createTextureImage( Image image );
 	void createTextureImageView();
 	void copyBufferToImage( VkBuffer buffer, VkImage image, uint width, uint height);
 	VkCommandBuffer beginSingleTimeCommands();

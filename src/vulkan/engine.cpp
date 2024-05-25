@@ -1,6 +1,4 @@
-#include "types/image_params.hpp"
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_vulkan.h>
+#include "engine.hpp"
 
 #include <chrono>
 #include <cstddef>
@@ -8,12 +6,13 @@
 #include <vulkan/vulkan_core.h>
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <cstring>
 #include <iostream>
 #include <set>
 #include <stdexcept>
 #include <limits>
-#include <cmath>
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
@@ -24,7 +23,7 @@
 
 #include "types/uniform_buffer.hpp"
 #include "types/qfamily_indices.hpp"
-#include "engine.hpp"
+#include "types/vertex.hpp"
 #include "../media/image.hpp"
 #include "../media/model.hpp"
 
@@ -75,8 +74,6 @@ void VulkanEngine::setup( SDL_Window* window ) {
 	createCommandBuffers();
 	createDepthResources();
 	createFramebuffers();
-	createTextureImage();
-	createTextureImageView();
 	loadModel();
 	createUniformBuffer();
 	createDescriptorPool();
@@ -812,6 +809,9 @@ void VulkanEngine::loadModel() {
 		vkFreeMemory( _device, stagingBufferMemory, nullptr );
 	}
 
+	createTextureImage( Image::loadFile( model.texturePath.c_str() ));
+	createTextureImageView();
+
 }
 
 void VulkanEngine::copyBuffer( VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size ) {
@@ -1248,9 +1248,7 @@ void VulkanEngine::createImage(uint width, uint height, ImageParams parameters, 
 	vkBindImageMemory( _device, image, imageMemory, 0 );
 }
 
-void VulkanEngine::createTextureImage() {
-
-	auto image = Image::loadFile("textures/sample.png");
+void VulkanEngine::createTextureImage( Image image ) {
 
 	VkDeviceSize imageSize = image.getSize();
 
