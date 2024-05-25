@@ -6,7 +6,7 @@
 #include <array>
 
 struct Vertex {
-	glm::vec2 pos;
+	glm::vec3 pos;
 	glm::u8vec3 color;
 	glm::vec2 uv0;
 

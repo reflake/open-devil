@@ -540,8 +540,8 @@ void VulkanEngine::createRenderPipeline() {
 		.depthClampEnable = VK_FALSE,
 		.rasterizerDiscardEnable = VK_FALSE,
 		.polygonMode = VK_POLYGON_MODE_FILL,
-		.cullMode = VK_CULL_MODE_BACK_BIT,
-		.frontFace = VK_FRONT_FACE_CLOCKWISE,
+		.cullMode = VK_CULL_MODE_NONE,
+		.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
 		.depthBiasEnable = VK_FALSE,
 		.depthBiasConstantFactor = 0.f,
 		.depthBiasClamp = 0.f,
@@ -696,10 +696,10 @@ void VulkanEngine::createVertexBuffer() {
 
 	const std::vector<Vertex> vertices = {
 
-		{ {-.5f, -.5f}, {0xFF, 0x00, 0x00}, { 1.0f, 0.0f } },
-		{ {0.5f, -.5f}, {0x00, 0xFF, 0x00}, { 0.0f, 0.0f } },
-		{ {0.5f, 0.5f}, {0x00, 0x00, 0xFF}, { 0.0f, 1.0f } },
-		{ {-.5f, 0.5f}, {0x00, 0xFF, 0xFF}, { 1.0f, 1.0f } },
+		{ {-.5f, .0f, -.5f}, {0xFF, 0x00, 0x00}, { 0.0f, 0.0f } },
+		{ {0.5f, .0f, -.5f}, {0x00, 0xFF, 0x00}, { 1.0f, 0.0f } },
+		{ {0.5f, .0f, 0.5f}, {0x00, 0x00, 0xFF}, { 1.0f, 1.0f } },
+		{ {-.5f, .0f, 0.5f}, {0x00, 0xFF, 0xFF}, { 0.0f, 1.0f } },
 
 	};
 
@@ -735,7 +735,7 @@ void VulkanEngine::createVertexBuffer() {
 void VulkanEngine::createIndexBuffer() {
 
 	const vector<uint16_t> indices = {
-		0, 1, 2, 2, 3, 0  
+		0, 2, 1, 2, 0, 3  
 	};
 
 	uint bufferSize = sizeof(uint16_t) * indices.size();
@@ -1010,9 +1010,9 @@ void VulkanEngine::updateUniformBuffer( int flightFrame ) {
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	float elapsedTimeSinceStartup = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-	glm::vec3 eyePos = glm::vec3(2.0f, 2.0f, 2.0f);
+	glm::vec3 eyePos = glm::vec3(2.0f, 2.0f, -2.0f);
 	glm::vec3 targetPos = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 upVec = glm::vec3(-0.5f, -0.5f, sin(glm::radians(45.0f)));
+	glm::vec3 upVec = glm::vec3(0, 0, 1);
 
 	UniformBufferObject ubo{};
 	ubo.model = glm::rotate( glm::mat4(1.0f), elapsedTimeSinceStartup * glm::radians( 90.0f ), glm::vec3( 0.0f, 0.0f, 1.0f) );
