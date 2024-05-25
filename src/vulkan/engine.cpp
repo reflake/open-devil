@@ -211,6 +211,7 @@ bool VulkanEngine::isSuitableDevice( VkPhysicalDevice device ) {
 
 	return props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
 		   features.geometryShader &&
+		   features.samplerAnisotropy &&
 		   areExtensionsSupported && 
 		   swapChainAdequate &&
 		   queueFamilyIndices.isComplete();
@@ -310,6 +311,7 @@ void VulkanEngine::createLogicalDevice() {
 	}
 
 	VkPhysicalDeviceFeatures deviceFeatures{};
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 	VkDeviceCreateInfo deviceCreateInfo {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -331,7 +333,6 @@ void VulkanEngine::createLogicalDevice() {
 
 		throw std::runtime_error("Vulkan API: Failed to create logical device");
 	}
-
 
 	vkGetDeviceQueue( _device, familyIndices.graphicsFamily.value(), 0, &_graphicsQueue);
 	vkGetDeviceQueue( _device, familyIndices.presentFamily.value(), 0, &_presentQueue);
@@ -1292,14 +1293,14 @@ void VulkanEngine::createTextureSampler() {
 		.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
 		.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
 		.mipLodBias = 0.0f,
-		.minLod = 0.0f,
-		.maxLod = 0.0f,
 		.anisotropyEnable = VK_TRUE,
 		.maxAnisotropy = properties.limits.maxSamplerAnisotropy,
-		.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
-		.unnormalizedCoordinates = VK_FALSE,
 		.compareEnable = VK_FALSE,
 		.compareOp = VK_COMPARE_OP_ALWAYS,
+		.minLod = 0.0f,
+		.maxLod = 0.0f,
+		.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+		.unnormalizedCoordinates = VK_FALSE,
 	};
 
 	if ( vkCreateSampler( _device, &samplerInfo, nullptr, &_textureSampler ) != VK_SUCCESS ) {
