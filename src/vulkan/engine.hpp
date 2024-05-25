@@ -12,6 +12,7 @@
 #include "types/qfamily_indices.hpp"
 #include "types/swap_chain_support.hpp"
 #include "types/image_params.hpp"
+#include "types/vertex.hpp"
 #include "shader.hpp"
 
 using std::vector;
@@ -47,8 +48,6 @@ private:
 	void createFramebuffers();
 	void createCommandPool();
 	void createCommandBuffers();
-	void createVertexBuffer();
-	void createIndexBuffer();
 	void recordCommandBuffer( VkCommandBuffer commandBuffer, uint imageIndex, int flightFrame );
 	void createSyncObjects();
 	void createBuffer( VkDeviceSize size, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memProps, VkBuffer &buffer, VkDeviceMemory &bufferMemory );
@@ -71,6 +70,7 @@ private:
 	void createDepthResources();
 	VkFormat findSupportedFormat(const vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	VkFormat findDepthFormat();
+	void loadModel();
 
 private:
 
@@ -113,6 +113,7 @@ private:
 	VkImage _depthImage;
 	VkImageView _depthImageView;
 	VkDeviceMemory _depthImageMemory;
+	int _numberOfIndices;
 	bool _safe = false;
 	int _currentFrame = 0;
 };

@@ -8,11 +8,14 @@ BUILD_DIR = $(CONFIG)
 # Compiler
 CXX = g++
 
-# Compilation flags (O2 - to compile faster)
-CXXFLAGS = -std=c++17 -O2
+# Compilation flags 
+CXXFLAGS = -std=c++17
 
 ifeq "$(CONFIG)" "Debug"
-	CXXFLAGS += -g -Wall
+	CXXFLAGS += -g -Wall -O0
+else
+# O2 - to compile faster
+	CXXFLAGS += -O2
 endif
 
 # Linker flags
@@ -37,6 +40,7 @@ OBJECTS = \
 	$(BUILD_OBJ_DIR)/vulkan/types/image_params.o \
 	$(BUILD_OBJ_DIR)/vulkan/types/vertex.o \
 	$(BUILD_OBJ_DIR)/media/image.o \
+	$(BUILD_OBJ_DIR)/media/model.o \
 
 OBJECT_DIRS = \
 	$(BUILD_OBJ_DIR)/vulkan \
@@ -72,10 +76,13 @@ TEXTURE_DIR = textures
 # Png Library
 LIBPNG = -lpng
 
+# Assimp asset import library
+ASSIMP = -lassimp
+
 all: dirs $(TARGET_BUILD_PATH)
 
 $(TARGET_BUILD_PATH): $(OBJECTS) $(SHADERS) $(TEXTURE)
-	$(CXX) $(OBJECTS) $(LDXXFLAGS) $(SDL) $(VULKAN) $(LIBPNG) -o $(TARGET_BUILD_PATH)
+	$(CXX) $(OBJECTS) $(LDXXFLAGS) $(SDL) $(VULKAN) $(LIBPNG) $(ASSIMP) -o $(TARGET_BUILD_PATH)
 
 dirs:
 	-mkdir -p $(BUILD_DIR)
