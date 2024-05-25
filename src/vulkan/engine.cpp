@@ -70,6 +70,7 @@ void VulkanEngine::setup( SDL_Window* window ) {
 	createCommandPool();
 	createCommandBuffers();
 	createTextureImage();
+	createTextureImageView();
 	createVertexBuffer();
 	createIndexBuffer();
 	createUniformBuffer();
@@ -695,10 +696,10 @@ void VulkanEngine::createVertexBuffer() {
 
 	const std::vector<Vertex> vertices = {
 
-		{ {-.5f, -.5f}, {0xFF, 0x00, 0x00} },
-		{ {0.5f, -.5f}, {0x00, 0xFF, 0x00} },
-		{ {0.5f, 0.5f}, {0x00, 0x00, 0xFF} },
-		{ {-.5f, 0.5f}, {0x00, 0xFF, 0xFF} },
+		{ {-.5f, -.5f}, {0xFF, 0x00, 0x00}, { 1.0f, 0.0f } },
+		{ {0.5f, -.5f}, {0x00, 0xFF, 0x00}, { 0.0f, 0.0f } },
+		{ {0.5f, 0.5f}, {0x00, 0x00, 0xFF}, { 0.0f, 1.0f } },
+		{ {-.5f, 0.5f}, {0x00, 0xFF, 0xFF}, { 1.0f, 1.0f } },
 
 	};
 
@@ -946,7 +947,6 @@ void VulkanEngine::createBuffer(
 	}
 }
 
-
 void VulkanEngine::createDescriptorSetlayout() {
 	
 	VkDescriptorSetLayoutBinding uboLayoutBinding {
@@ -957,10 +957,20 @@ void VulkanEngine::createDescriptorSetlayout() {
 		.pImmutableSamplers = nullptr
 	};
 
+	VkDescriptorSetLayoutBinding samplerLayoutBinding {
+		.binding = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+		.pImmutableSamplers = nullptr,
+	};
+
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+
 	VkDescriptorSetLayoutCreateInfo layoutInfo {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-		.bindingCount = 1,
-		.pBindings = &uboLayoutBinding
+		.bindingCount = bindings.size(),
+		.pBindings = bindings.data()
 	};
 
 	if ( vkCreateDescriptorSetLayout( _device, &layoutInfo, nullptr, &_descriptorSetLayout ) != VK_SUCCESS ) {
@@ -1014,17 +1024,23 @@ void VulkanEngine::updateUniformBuffer( int flightFrame ) {
 
 void VulkanEngine::createDescriptorPool() {
 
-	VkDescriptorPoolSize poolSize {
-		.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.descriptorCount = MAX_FRAMES_IN_FLIGHT
+	std::array<VkDescriptorPoolSize, 2> poolSize {
+		VkDescriptorPoolSize {
+			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorCount = MAX_FRAMES_IN_FLIGHT
+		},
+		VkDescriptorPoolSize {
+			.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = MAX_FRAMES_IN_FLIGHT
+		},
 	};
 
 	VkDescriptorPoolCreateInfo createInfo {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
 		.maxSets = MAX_FRAMES_IN_FLIGHT,
-		.poolSizeCount = 1,
-		.pPoolSizes = &poolSize,
+		.poolSizeCount = poolSize.size(),
+		.pPoolSizes = poolSize.data(),
 	};
 
 	if ( vkCreateDescriptorPool( _device, &createInfo, nullptr, &_descriptorPool ) != VK_SUCCESS ) {
@@ -1059,19 +1075,39 @@ void VulkanEngine::allocDescriptorSets() {
 			.range = sizeof(UniformBufferObject)
 		};
 
-		VkWriteDescriptorSet descriptorWrite {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet = _descriptorSets[i],
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = nullptr,
-			.pBufferInfo = &bufferInfo,
-			.pTexelBufferView = nullptr,
+		VkDescriptorImageInfo imageInfo {
+			.sampler = _textureSampler,
+			.imageView = _textureImageView,
+			.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		};
 
-		vkUpdateDescriptorSets( _device, 1, &descriptorWrite, 0, nullptr );
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites {
+
+			VkWriteDescriptorSet {
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.dstSet = _descriptorSets[i],
+				.dstBinding = 0,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+				.pImageInfo = nullptr,
+				.pBufferInfo = &bufferInfo,
+				.pTexelBufferView = nullptr,
+			},
+
+			VkWriteDescriptorSet {
+				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+				.dstSet = _descriptorSets[i],
+				.dstBinding = 1,
+				.dstArrayElement = 0,
+				.descriptorCount = 1,
+				.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+				.pImageInfo = &imageInfo,
+				.pTexelBufferView = nullptr,
+			}
+		};
+
+		vkUpdateDescriptorSets( _device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr );
 	}
 }
 
