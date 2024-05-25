@@ -11,6 +11,7 @@
 
 #include "types/qfamily_indices.hpp"
 #include "types/swap_chain_support.hpp"
+#include "types/image_params.hpp"
 #include "shader.hpp"
 
 using std::vector;
@@ -63,10 +64,13 @@ private:
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands( VkCommandBuffer commandBuffer );
 	uint findMemoryType(uint typeFilter, VkMemoryPropertyFlags props);
-	void createImage( uint width, uint height, VkFormat format, VkImage& image, VkDeviceMemory& imageMemory );
+	void createImage( uint width, uint height, ImageParams parameters, VkImage& image, VkDeviceMemory& imageMemory );
 	void transitionImageLayout( VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout );
-	VkResult createImageView( VkImage image, VkFormat format, VkImageView* pView );
+	VkResult createImageView( VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* pView );
 	void createTextureSampler();
+	void createDepthResources();
+	VkFormat findSupportedFormat(const vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	VkFormat findDepthFormat();
 
 private:
 
@@ -106,6 +110,9 @@ private:
 	VkImageView _textureImageView;
 	VkDeviceMemory _textureImageMemory;
 	VkSampler _textureSampler;
+	VkImage _depthImage;
+	VkImageView _depthImageView;
+	VkDeviceMemory _depthImageMemory;
 	bool _safe = false;
 	int _currentFrame = 0;
 };

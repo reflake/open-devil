@@ -34,6 +34,7 @@ OBJECTS = \
 	$(BUILD_OBJ_DIR)/vulkan/engine.o \
 	$(BUILD_OBJ_DIR)/vulkan/types/qfamily_indices.o \
 	$(BUILD_OBJ_DIR)/vulkan/types/swap_chain_support.o \
+	$(BUILD_OBJ_DIR)/vulkan/types/image_params.o \
 	$(BUILD_OBJ_DIR)/vulkan/types/vertex.o \
 	$(BUILD_OBJ_DIR)/media/image.o \
 
